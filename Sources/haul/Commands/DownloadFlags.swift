@@ -6,7 +6,9 @@ extension APIType: ExpressibleByArgument {}
 extension DanmakuFormat: ExpressibleByArgument {}
 
 struct GeneralFlags: ParsableArguments {
-    @Flag(name: .long, help: "Print one JSON document on stdout (the item, its pages and streams, the files written); logs go to stderr.")
+    @Flag(name: .long, help: ArgumentHelp(
+        "Print one JSON document on stdout; logs go to stderr.",
+        discussion: "The item, its pages, their streams and, for a download, the output files (top-level `files`)."))
     var json = false
 
     @Option(name: .long, help: ArgumentHelp("Config file.", discussion: "Default: \(Storage.url(Storage.configFile).path)", valueName: "file"))
@@ -27,7 +29,9 @@ struct StreamFlags: ParsableArguments {
         "Codec priority, comma separated.", discussion: "Video: av1 vp9 hevc avc. Audio: m4a opus flac eac3 mp3.", valueName: "list"))
     var codec: String?
 
-    @Option(name: .customLong("video-stream"), help: ArgumentHelp("Take this video stream: its index in `haul info`.", valueName: "n"))
+    @Option(name: .customLong("video-stream"), help: ArgumentHelp(
+        "Take this video stream: its index in `haul info`.",
+        discussion: "Indexes follow the order -q, -c and --*-ascending give: pass the same ones to info and download.", valueName: "n"))
     var videoStream: Int?
 
     @Option(name: .customLong("audio-stream"), help: ArgumentHelp("Take this audio stream: its index in `haul info`.", valueName: "n"))
@@ -36,7 +40,7 @@ struct StreamFlags: ParsableArguments {
     @Flag(name: [.customShort("i"), .long], help: "Choose the streams with the arrow keys (needs a terminal).")
     var interactive = false
 
-    @Flag(name: .long, help: "Prefer the smallest video stream.")
+    @Flag(name: .long, help: "Prefer the lowest quality and the smallest video stream.")
     var videoAscending = false
 
     @Flag(name: .long, help: "Prefer the smallest audio stream.")
@@ -45,8 +49,9 @@ struct StreamFlags: ParsableArguments {
 
 struct PageFlags: ParsableArguments {
     @Option(name: [.customShort("p"), .long], help: ArgumentHelp(
-        "Pages / episodes / videos of a post to take: 8, 1,2, 3-5, ALL, LAST, LATEST.",
-        discussion: "Default: the page the link points at, else all.", valueName: "spec"))
+        "Pages / episodes / videos of a post to take: 8, 1,2, 3-5, ALL, LAST.",
+        discussion: "1-based, as `info` numbers them; LAST (or LATEST) is the last page, the newest episode of a show. "
+            + "Default: the page the link points at, else all (`info`: a list of the pages only).", valueName: "spec"))
     var pages: String?
 
     @Flag(name: .long, help: "List every page and every stream instead of a summary.")
@@ -57,7 +62,8 @@ struct PageFlags: ParsableArguments {
 }
 
 struct ContentFlags: ParsableArguments {
-    @Flag(name: .long, help: "Audio only (.m4a; podcasts keep their own format).")
+    @Flag(name: .long, help: ArgumentHelp("Audio only, as .m4a.",
+                                          discussion: "The best audio stream, which may be Opus; -c m4a gets AAC. Podcasts keep .mp3 / .m4a."))
     var audioOnly = false
     @Flag(name: .long, help: "Video only, no audio.")
     var videoOnly = false
@@ -67,6 +73,10 @@ struct ContentFlags: ParsableArguments {
     var coverOnly = false
     @Flag(name: .long, help: "Do not embed subtitles.")
     var skipSubtitle = false
+    @Option(name: .customLong("sub-lang"), help: ArgumentHelp(
+        "Only these subtitle languages, comma separated, e.g. en,zh.", discussion: "en also matches en-US. `haul info` lists them.",
+        valueName: "list"))
+    var subLang: String?
     @Flag(name: .long, inversion: .prefixedNo, help: "Skip auto-generated (AI) subtitles. Default: skip.")
     var skipAiSubtitle: Bool?
     @Flag(name: .long, help: "Do not embed the cover.")
@@ -77,9 +87,10 @@ struct ContentFlags: ParsableArguments {
 
 struct OutputFlags: ParsableArguments {
     @Option(name: [.customShort("o"), .long], help: ArgumentHelp(
-        "File-name template for a single page.", discussion: "Default: \(FilePattern.singleDefault). Variables: `haul templates`.", valueName: "template"))
+        "File-name template for an item with one page.",
+        discussion: "Default: \(FilePattern.singleDefault). Variables: `haul templates`. No extension: haul adds it.", valueName: "template"))
     var output: String?
-    @Option(name: .long, help: ArgumentHelp("File-name template when there are several pages.",
+    @Option(name: .long, help: ArgumentHelp("File-name template for an item with several pages, even when -p takes one.",
                                             discussion: "Default: \(FilePattern.multiDefault)", valueName: "template"))
     var multiOutput: String?
     @Option(name: [.customShort("w"), .long], help: ArgumentHelp("Directory to download into. Default: the current directory.", valueName: "dir"))
@@ -192,6 +203,7 @@ struct DownloadFlags: ParsableArguments {
         if c.subtitleOnly { o.subtitleOnly = true }
         if c.coverOnly { o.coverOnly = true }
         if c.skipSubtitle { o.skipSubtitle = true }
+        if let v = c.subLang { o.subtitleLanguages = v }
         if let v = c.skipAiSubtitle { o.skipAISubtitle = v }
         if c.skipCover { o.skipCover = true }
         if c.skipMux { o.skipMux = true }

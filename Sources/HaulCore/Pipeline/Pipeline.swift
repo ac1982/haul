@@ -143,14 +143,21 @@ public final class DownloadPipeline: Sendable {
         let selection = try PageSelection.parse(options.pages, info: info, input: options.url)
         let totalPages = info.pages.count
         let unit = info.site.unit
+        // `info` on a list without -p lists the pages only: reading every page's streams can take minutes.
+        if options.onlyShowInfo && selection == nil && totalPages > 1 && options.pages.isEmpty {
+            report.start(info, input: options.url, selected: [], loggedIn: isLoggedIn)
+            Log.status("\(totalPages) \(unit)s; -p <n> lists the streams of one, -p ALL of all")
+            return
+        }
         let pages = selection.map { s in info.pages.filter { s.contains($0.index) } } ?? info.pages
+        report.start(info, input: options.url, selected: Set(pages.map(\.index)), loggedIn: isLoggedIn)
         if let selection, pages.isEmpty {
             throw HaulError.input("-p \(options.pages) matches none of the \(totalPages) \(unit)s (\(selection.map(String.init).joined(separator: ",")))")
         }
-        report.start(info, input: options.url, selected: Set(pages.map(\.index)), loggedIn: isLoggedIn)
         if totalPages > 1 {
-            Log.status(selection == nil ? "Downloading all \(totalPages) \(unit)s"
-                : "Selected \(pages.count) of \(totalPages) \(unit)s: \(pages.map { String($0.index) }.joined(separator: ", "))")
+            let verb = options.onlyShowInfo ? "Listing" : "Downloading"
+            Log.status(selection == nil ? "\(verb) all \(totalPages) \(unit)s"
+                : "\(verb) \(pages.count) of \(totalPages) \(unit)s: \(pages.map { String($0.index) }.joined(separator: ", "))")
         }
         let started = Date()
         let mediaSource = source(for: info.site)
@@ -198,7 +205,8 @@ public final class DownloadPipeline: Sendable {
     private func key(_ v: VideoTrack, codecFirst: Bool) -> [Int64] {
         let q = Int64(qualityPriority[v.quality.uppercased()] ?? 100)
         let c = Int64(codecPriority[v.codec] ?? 100)
-        let id = -(Int64(v.id) ?? 0)
+        // Ascending turns the whole order around: lowest quality first, then the smallest stream.
+        let id = options.videoAscending ? Int64(v.id) ?? 0 : -(Int64(v.id) ?? 0)
         let bw = options.videoAscending ? v.bandwidth : -v.bandwidth
         return codecFirst ? [c, q, id, bw] : [q, c, id, bw]
     }

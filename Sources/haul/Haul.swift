@@ -23,13 +23,15 @@ struct Haul: AsyncParsableCommand {
           Muxing needs ffmpeg: brew install ffmpeg
 
         FOR SCRIPTS AND AI AGENTS
-          haul info <url> --json   inspect first: the item, its pages, and
-                                   each page's streams with their indexes
-          haul <url> --json        download; prints one JSON document with
-                                   the files written
+          haul info <url> --json   inspect: the item and its pages; for one
+                                   page (or -p N) its streams and subtitles
+          haul <url> --json        download; `files` lists the output files
           With --json, stdout carries only that document; progress and logs
           go to stderr. haul never prompts without a terminal: choose streams
-          with --video-stream N / --audio-stream N, or let -q / -c decide.
+          with --video-stream N / --audio-stream N (indexes from info, with
+          the same -q / -c), or let -q / -c decide. Re-runs skip files that
+          exist. A list saves into a folder named after it: read the path
+          from the JSON, do not build it.
 
         EXIT CODES
           0 done              1 download failed    2 bad link or option

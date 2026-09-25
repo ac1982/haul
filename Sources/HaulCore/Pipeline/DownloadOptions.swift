@@ -37,6 +37,8 @@ public struct DownloadOptions: Codable, Sendable {
     public var downloadDanmaku = false
     public var danmakuFormats: [DanmakuFormat] = [.xml, .ass]
     public var skipAISubtitle = true
+    /// Keep only these subtitle languages, comma separated (`en,zh`); `en` also matches `en-US`. Empty keeps all.
+    public var subtitleLanguages = ""
     public var videoAscending = false
     public var audioAscending = false
     public var allowPCDN = false
@@ -83,7 +85,7 @@ public struct DownloadOptions: Codable, Sendable {
         try v(.danmakuOnly, &danmakuOnly); try v(.coverOnly, &coverOnly); try v(.subtitleOnly, &subtitleOnly)
         try v(.debug, &debug); try v(.skipMux, &skipMux); try v(.skipSubtitle, &skipSubtitle); try v(.skipCover, &skipCover)
         try v(.forceHTTP, &forceHTTP); try v(.downloadDanmaku, &downloadDanmaku); try v(.danmakuFormats, &danmakuFormats)
-        try v(.skipAISubtitle, &skipAISubtitle); try v(.videoAscending, &videoAscending); try v(.audioAscending, &audioAscending)
+        try v(.skipAISubtitle, &skipAISubtitle); try v(.subtitleLanguages, &subtitleLanguages); try v(.videoAscending, &videoAscending); try v(.audioAscending, &audioAscending)
         try v(.allowPCDN, &allowPCDN); try v(.forceReplaceHost, &forceReplaceHost); try v(.saveArchive, &saveArchive)
         try v(.filePattern, &filePattern); try v(.multiFilePattern, &multiFilePattern); try v(.pages, &pages)
         try v(.language, &language); try v(.userAgent, &userAgent); try v(.cookie, &cookie); try v(.accessToken, &accessToken)

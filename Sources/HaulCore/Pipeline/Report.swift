@@ -31,6 +31,8 @@ public final class Report: Sendable {
         public var title: String
         public var id: String
         public var durationSeconds: Int?
+        /// ISO 8601, when the site dates its pages (episodes, list items).
+        public var published: String?
         /// Whether the run worked on this page (`-p`, or the page a link points at).
         public var selected: Bool
         public var status: Status?
@@ -76,6 +78,9 @@ public final class Report: Sendable {
         /// bilibili only: whether the stored login was valid (logged out means lower qualities); nil when not checked.
         public var loggedIn: Bool?
         public var pageCount: Int
+        /// The output files of the pages the run took, absolute, whether written now or found already there (skipped):
+        /// each page's file and extra files. Empty for `info`.
+        public var files: [String] = []
         public var pages: [PageEntry]
     }
 
@@ -88,7 +93,14 @@ public final class Report: Sendable {
 
     public init(command: String) { self.command = command }
 
-    public var document: Document? { state.withLock { $0.document } }
+    /// The document, with `files` gathered from the pages.
+    public var document: Document? {
+        guard var doc = state.withLock({ $0.document }) else { return nil }
+        doc.files = doc.pages.flatMap { p in
+            (p.status == .downloaded || p.status == .skipped ? [p.file].compactMap { $0 } : []) + (p.extraFiles ?? [])
+        }
+        return doc
+    }
 
     func start(_ info: VideoInfo, input: String, selected: Set<Int>, loggedIn: Bool?) {
         let owner = info.pages.first { !($0.ownerName ?? "").isEmpty }?.ownerName
@@ -98,7 +110,8 @@ public final class Report: Sendable {
             description: info.desc.isEmpty ? nil : info.desc, loggedIn: loggedIn, pageCount: info.pages.count,
             pages: info.pages.map {
                 PageEntry(index: $0.index, title: $0.title, id: Self.pageID($0, site: info.site),
-                          durationSeconds: $0.duration > 0 ? $0.duration : nil, selected: selected.contains($0.index))
+                          durationSeconds: $0.duration > 0 ? $0.duration : nil, published: $0.pubTime > 0 ? Self.iso($0.pubTime) : nil,
+                          selected: selected.contains($0.index))
             })
         state.withLock { $0.document = doc }
     }
@@ -193,8 +206,17 @@ public final class Report: Sendable {
         Date(timeIntervalSince1970: TimeInterval(seconds)).formatted(.iso8601)
     }
 
+    /// Absolute and with symlinks resolved (`/tmp` → `/private/tmp`), so it compares equal to what `realpath` gives.
     static func absolute(_ path: String) -> String {
-        let p = path.hasPrefix("/") ? path : (FileManager.default.currentDirectoryPath as NSString).appendingPathComponent(path)
-        return (p as NSString).standardizingPath
+        let p = ((path.hasPrefix("/") ? path : (FileManager.default.currentDirectoryPath as NSString).appendingPathComponent(path))
+            as NSString).standardizingPath
+        func real(_ p: String) -> String? {
+            guard let r = realpath(p, nil) else { return nil }
+            defer { free(r) }
+            return String(cString: r)
+        }
+        if let r = real(p) { return r }
+        if let dir = real((p as NSString).deletingLastPathComponent) { return (dir as NSString).appendingPathComponent((p as NSString).lastPathComponent) }
+        return p
     }
 }

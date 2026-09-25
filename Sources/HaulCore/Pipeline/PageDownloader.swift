@@ -89,13 +89,7 @@ struct PageDownloader {
                 }
             }
             if !options.skipSubtitle && !options.danmakuOnly && !options.coverOnly {
-                Log.debug("Fetching subtitles")
-                var subs = await source.subtitles(for: request(page))
-                if options.skipAISubtitle && !subs.isEmpty {
-                    let ai = subs.filter { $0.language.hasPrefix("ai-") }.count
-                    if ai > 0 { Log.debug("Skipping \(ai) AI subtitles") }
-                    subs = subs.filter { !$0.language.hasPrefix("ai-") }
-                }
+                let subs = await wantedSubtitles(page)
                 for s in subs {
                     Log.status("Subtitle  \(s.language)  \(Subtitles.languageInfo(s.language).name)")
                     Log.debug("Downloading \(s.url)")
@@ -124,6 +118,8 @@ struct PageDownloader {
                 removeDirectoryIfEmpty(aid)
                 return
             }
+        } else if !options.skipSubtitle {
+            report.subtitles(page, await wantedSubtitles(page))
         }
 
         var parsed = try await source.tracks(for: request(page), quality: nil)
@@ -240,6 +236,7 @@ struct PageDownloader {
             Log.status("Exists, skipping  " + Terminal.prettyPath(savePath))
             report.finished(page, status: .skipped, file: savePath, reason: "exists")
             try? fm.removeItem(atPath: ctx.coverPath)
+            for s in ctx.subtitles { try? fm.removeItem(atPath: s.path) }
             removeDirectoryIfEmpty(page.aid)
             return
         }
@@ -338,7 +335,9 @@ struct PageDownloader {
         if fm.fileExists(atPath: savePath) && Downloader.fileSize(savePath) != 0 {
             Log.status("Exists, skipping  " + Terminal.prettyPath(savePath))
             report.finished(page, status: .skipped, file: savePath, reason: "exists")
-            if selectedPages.count == 1 { try? fm.removeItem(atPath: page.aid) }
+            try? fm.removeItem(atPath: ctx.coverPath)
+            for s in ctx.subtitles { try? fm.removeItem(atPath: s.path) }
+            removeDirectoryIfEmpty(page.aid)
             return
         }
 
@@ -374,13 +373,31 @@ struct PageDownloader {
 
     // MARK: pieces
 
+    /// The page's subtitles, less AI ones unless asked for, and only the `--sub-lang` languages when given.
+    private func wantedSubtitles(_ page: Page) async -> [SubtitleInfo] {
+        Log.debug("Fetching subtitles")
+        var subs = await source.subtitles(for: request(page))
+        if options.skipAISubtitle {
+            let ai = subs.filter { $0.language.hasPrefix("ai-") }.count
+            if ai > 0 { Log.debug("Skipping \(ai) AI subtitles") }
+            subs = subs.filter { !$0.language.hasPrefix("ai-") }
+        }
+        let wanted = options.subtitleLanguages.lowercased().split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        guard !wanted.isEmpty else { return subs }
+        return subs.filter { s in
+            let lang = s.language.lowercased().replacingOccurrences(of: "ai-", with: "")
+            return wanted.contains { lang == $0 || lang.hasPrefix($0 + "-") }
+        }
+    }
+
     private func request(_ page: Page) -> PageRequest {
         PageRequest(page: page, id: id, api: api)
     }
 
     private func render(_ ctx: Context, video: VideoTrack?, audio: AudioTrack?) -> String {
         FilePattern.render(pattern, FilePattern.Context(title: ctx.title, video: video, audio: audio, page: ctx.page,
-                                                       pageCount: ctx.pageCount, apiType: api.label, pubTime: info.pubTime,
+                                                       pageCount: info.pages.count, apiType: api.label, pubTime: info.pubTime,
                                                        site: info.site))
     }
 

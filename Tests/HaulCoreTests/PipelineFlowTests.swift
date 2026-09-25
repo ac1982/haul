@@ -41,7 +41,7 @@ import Testing
         }
         #expect(codecFirst.sortVideo(tracks()).map { "\($0.id)/\($0.codec)" } == ["80/AVC", "32/AVC", "80/HEVC", "120/HEVC"])
         let (ascending, _) = try await pipeline { $0.skipMux = true; $0.videoAscending = true }
-        #expect(ascending.sortVideo(tracks()).map { "\($0.id)/\($0.codec)" } == ["120/HEVC", "80/HEVC", "80/AVC", "32/AVC"])
+        #expect(ascending.sortVideo(tracks()).map { "\($0.id)/\($0.codec)" } == ["32/AVC", "80/HEVC", "80/AVC", "120/HEVC"])
     }
 
     @Test func ordersAudioByCodecThenBandwidth() async throws {
@@ -142,12 +142,21 @@ import Testing
         #expect(doc.ok && doc.site == .youtube && doc.title == "YouTube Clip" && doc.uploader == "Channel" && doc.pageCount == 1)
         let entry = try #require(doc.pages.first)
         #expect(entry.status == .downloaded && entry.selected && entry.id == "ytTestVid01")
-        #expect(entry.file == ((dir as NSString).standardizingPath as NSString).appendingPathComponent("YouTube Clip.mp4"))
+        let file = Report.absolute("\(dir)/YouTube Clip.mp4")
+        #expect(entry.file == file && file.hasPrefix("/private/"))
+        #expect(doc.files == [file])
         #expect(entry.sizeBytes.map { $0 > 0 } == true && entry.subtitles == ["en"])
         #expect(entry.video?.map(\.quality) == ["360p"] && entry.audio?.map(\.codec) == ["M4A"] && entry.selectedVideo == 0)
         #expect(entry.video?.first?.url == nil)
         let decoded = try JSONDecoder().decode(Report.Document.self, from: Data(try #require(p.report.json()).utf8))
         #expect(decoded.pages.first?.file == entry.file)
+
+        // Again: skipped, and nothing left behind (no subtitle or cover work files).
+        let (again, _) = try await pipeline { $0.workDir = dir }
+        try await again.downloadPages(info, id: .link(site: .youtube, url: "https://www.youtube.com/watch?v=ytTestVid01"))
+        let skipped = try #require(again.report.document)
+        #expect(skipped.pages.first?.status == .skipped && skipped.pages.first?.reason == "exists" && skipped.files == [file])
+        #expect(try FileManager.default.contentsOfDirectory(atPath: dir) == ["YouTube Clip.mp4"])
     }
 
     @Test func infoReportsStreamsWithoutDownloading() async throws {
@@ -159,6 +168,35 @@ import Testing
         #expect(entry.audio?.first?.index == 0 && entry.audio?.first?.bitrateKbps == 130)
         #expect(try FileManager.default.contentsOfDirectory(atPath: dir).isEmpty)
         #expect(Stub.requests("yt-info.test").isEmpty)
+    }
+
+    @Test func infoListsSubtitlesAndFiltersThemByLanguage() async throws {
+        let (all, _) = try await pipeline { $0.onlyShowInfo = true }
+        try await all.downloadPages(youtubeInfo(host: "yt-subs.test"), id: .link(site: .youtube, url: "u"))
+        #expect(all.report.document?.pages.first?.subtitles == ["en"])
+        let (french, _) = try await pipeline { $0.onlyShowInfo = true; $0.subtitleLanguages = "fr, de" }
+        try await french.downloadPages(youtubeInfo(host: "yt-subs.test"), id: .link(site: .youtube, url: "u"))
+        #expect(french.report.document?.pages.first?.subtitles == [])
+        #expect(Stub.requests("yt-subs.test").isEmpty)
+    }
+
+    @Test func infoOnAListListsPagesUntilOneIsChosen() async throws {
+        let (list, _) = try await pipeline { $0.onlyShowInfo = true }
+        try await list.downloadPages(xInfo(pages: 3), id: .link(site: .x, url: "u"))
+        let doc = try #require(list.report.document)
+        #expect(doc.pageCount == 3 && doc.pages.allSatisfy { !$0.selected && $0.video == nil && $0.status == nil })
+        let (one, _) = try await pipeline { $0.onlyShowInfo = true; $0.pages = "2" }
+        try await one.downloadPages(xInfo(pages: 3), id: .link(site: .x, url: "u"))
+        let pages = try #require(one.report.document?.pages)
+        #expect(pages[1].selected && pages[1].status == .listed && pages[1].video?.isEmpty == false && pages[0].video == nil)
+    }
+
+    @Test func aPageSelectionOutOfRangeStillReportsThePages() async throws {
+        let (p, _) = try await pipeline { $0.pages = "99" }
+        await #expect { try await p.downloadPages(xInfo(pages: 2), id: .link(site: .x, url: "u")) }
+            throws: { ($0 as? HaulError)?.kind == .input }
+        let json = try JSON.parse(p.report.failureJSON(HaulError.input("x"), input: "u"))
+        #expect(json["ok"].bool == false && json["pages"].array.count == 2 && json["pageCount"].int == 2)
     }
 
     @Test func streamIndexesAreChecked() async throws {

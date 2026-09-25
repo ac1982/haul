@@ -25,8 +25,11 @@ struct Info: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Show the item, its pages and their streams; download nothing.",
         discussion: """
-            Streams are listed in the order haul would choose them under the same -q / -c options; the index of each is \
-            what --video-stream / --audio-stream take. With --json, stdout gets one JSON document.
+            Streams are listed in the order haul would choose them under the same -q / -c / --*-ascending options; \
+            the index of each is what --video-stream / --audio-stream take, so pass the same options to both. \
+            For an item with several pages (a playlist, season, show, multi-video post) info lists the pages only; \
+            -p <n> lists the streams and subtitles of page n, -p ALL of every page. Download options are accepted \
+            and ignored. With --json, stdout gets one JSON document.
             """)
 
     @Argument(help: "A YouTube, X, bilibili, Xiaoyuzhou or Apple Podcasts link, or a bilibili id (BV…, av…, ep…, ss…).")
