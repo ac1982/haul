@@ -1,5 +1,8 @@
 import Foundation
 import Synchronization
+#if canImport(Glibc)
+import Glibc
+#endif
 
 /// What a run found and did, for `--json`: the item, every page, the streams of the pages it looked at, and the files
 /// it wrote. Filled in while the run goes; `document` is what gets printed.

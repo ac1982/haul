@@ -22,3 +22,23 @@ jobs:
         run: |
           swift build -c release --product haul
           file .build/release/haul | grep -q arm64
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    container: swift:6.2-noble
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependencies
+        run: apt-get update && apt-get install -y --no-install-recommends zlib1g-dev ffmpeg
+      - name: Toolchain
+        run: swift --version
+      - name: Test
+        run: swift test
+      - name: Build (release, static stdlib)
+        run: |
+          swift build -c release --product haul --static-swift-stdlib
+          .build/release/haul --version
