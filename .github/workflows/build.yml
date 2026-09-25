@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version: stable
       - name: ffmpeg (end-to-end tests)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
@@ -25,7 +25,7 @@ jobs:
         run: go vet ./...
       - name: Format
         if: runner.os != 'Windows'
-        run: test -z "$(gofmt -l .)"
+        run: gofmt -d . && test -z "$(gofmt -l .)"
       - name: Test (race detector)
         if: runner.os != 'Windows'
         run: go test -race ./...
