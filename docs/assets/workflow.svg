@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="180" viewBox="0 0 1200 180" fill="none">
+  <title>From a link to a finished file</title>
+  <desc>Four steps: inspect pages and streams, choose quality and codecs, download media, and mux tracks and metadata into a finished file.</desc>
+  <rect width="1200" height="180" rx="20" fill="#101D2D"/>
+  <g stroke="#456474" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M276 88H310L302 80M310 88L302 96"/><path d="M572 88H606L598 80M606 88L598 96"/><path d="M868 88H902L894 80M902 88L894 96"/></g>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <g fill="#8BE5BF" font-size="12" font-weight="700" letter-spacing="2"><text x="32" y="40">01 / INSPECT</text><text x="328" y="40">02 / CHOOSE</text><text x="624" y="40">03 / DOWNLOAD</text><text x="920" y="40">04 / MUX</text></g>
+    <g fill="#F4FAFC" font-size="23" font-weight="600"><text x="32" y="83">See every stream</text><text x="328" y="83">Set your priorities</text><text x="624" y="83">Bring it home</text><text x="920" y="83">Keep it together</text></g>
+    <g fill="#ADC1D1" font-size="16"><text x="32" y="116">Pages, codecs, and sizes</text><text x="328" y="116">Quality, audio, and pages</text><text x="624" y="116">Ranged or segmented</text><text x="920" y="116">Tracks, captions, and cover</text></g>
+    <g fill="#819CAD" font-family="'SFMono-Regular', Consolas, monospace" font-size="14"><text x="32" y="148">haul info &quot;&lt;url&gt;&quot;</text><text x="328" y="148">-q 720p -c avc,m4a</text><text x="624" y="148">haul &quot;&lt;url&gt;&quot;</text><text x="920" y="148">ffmpeg / MP4Box</text></g>
+  </g>
+</svg>

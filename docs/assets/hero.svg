@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" fill="none" xml:space="preserve">
+  <title>haul — One link. Your media.</title>
+  <desc>A mint download mark and haul wordmark beside a terminal showing the inspect, choose and download workflow. A native macOS downloader for video and audio.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="440" gradientUnits="userSpaceOnUse"><stop stop-color="#0D192B"/><stop offset="1" stop-color="#152D39"/></linearGradient>
+    <linearGradient id="mark" x1="60" y1="65" x2="146" y2="151" gradientUnits="userSpaceOnUse"><stop stop-color="#A5F3D0"/><stop offset="1" stop-color="#4FD1C5"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" stroke="#D8FFF3" stroke-opacity=".035"/></pattern>
+  </defs>
+  <rect width="1200" height="440" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="440" rx="24" fill="url(#grid)"/>
+  <path d="M1010 0L570 440M1130 0L690 440" stroke="#73E2BC" stroke-opacity=".07" stroke-width="64"/>
+  <rect x="60" y="64" width="88" height="88" rx="24" fill="url(#mark)"/>
+  <path d="M104 83V119M90 106L104 120L118 106M82 125V133H126V125" stroke="#102838" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+    <text x="168" y="131" fill="#F4FAFC" font-size="76" font-weight="750" letter-spacing="-4">haul</text>
+    <text x="62" y="213" fill="#F4FAFC" font-size="40" font-weight="650" letter-spacing="-1.2">One link. Your media.</text>
+    <text x="64" y="253" fill="#AEC2D1" font-size="19">Video, audio, and everything that belongs.</text>
+    <text x="64" y="282" fill="#AEC2D1" font-size="19">A native CLI for people and AI agents.</text>
+    <rect x="64" y="322" width="106" height="29" rx="14.5" fill="#203D48"/>
+    <text x="117" y="342" text-anchor="middle" fill="#A5F3D0" font-size="12" font-weight="600" letter-spacing="1.2">macOS 15+</text>
+    <rect x="180" y="322" width="126" height="29" rx="14.5" fill="#203D48"/>
+    <text x="243" y="342" text-anchor="middle" fill="#A5F3D0" font-size="12" font-weight="600" letter-spacing=".8">APPLE SILICON</text>
+    <text x="64" y="398" fill="#849FAC" font-size="13">YouTube  /  X  /  bilibili  /  Xiaoyuzhou  /  Apple Podcasts</text>
+  </g>
+  <rect x="609" y="61" width="532" height="310" rx="15" fill="#060F1B" fill-opacity=".45"/>
+  <rect x="600" y="52" width="532" height="310" rx="15" fill="#101B2A" stroke="#35505D"/>
+  <path d="M601 94H1131" stroke="#2D414F"/>
+  <circle cx="624" cy="74" r="5" fill="#F38D89"/><circle cx="642" cy="74" r="5" fill="#EAC274"/><circle cx="660" cy="74" r="5" fill="#73D5AC"/>
+  <text x="866" y="79" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" fill="#8EA8B9" font-size="12">haul / your next download</text>
+  <g font-family="'SFMono-Regular', Consolas, 'Liberation Mono', monospace" font-size="16">
+    <text x="625" y="135" fill="#829BAE"># Inspect what is available</text>
+    <text x="625" y="164" fill="#ECF4F8"><tspan fill="#8BE5BF">$ </tspan>haul info "&lt;url&gt;"</text>
+    <text x="645" y="204" fill="#9BB1C3">Video <tspan fill="#8BE5BF">1080p</tspan><tspan>    Audio </tspan><tspan fill="#8BE5BF">M4A</tspan></text>
+    <text x="625" y="255" fill="#829BAE"># Pick your quality. Make it yours.</text>
+    <text x="625" y="284" fill="#ECF4F8"><tspan fill="#8BE5BF">$ </tspan>haul -q 1080p "&lt;url&gt;"</text>
+    <text x="625" y="333" fill="#8BE5BF">LINK <tspan fill="#587384"> → </tspan>STREAMS<tspan fill="#587384"> → </tspan>YOUR FILE</text>
+  </g>
+</svg>
