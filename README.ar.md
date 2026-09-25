@@ -101,13 +101,17 @@ haul v1.0.0
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg yt-dlp           # Debian / Ubuntu; deno: https://deno.com
+sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+pipx install "yt-dlp[default]" && pipx ensurepath
+curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows: حزمة واحدة في كل مرة
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
 
 </div>
+
+على Linux، ثبّت yt-dlp عبر pipx أو من الملف <bdi dir="ltr">`yt-dlp_linux`</bdi> في [إصداراته](https://github.com/yt-dlp/yt-dlp/releases/latest) (<bdi dir="ltr">`yt-dlp_linux_aarch64`</bdi> على arm64)، لا من حزم توزيعتك: يتغيّر YouTube كثيرًا وتتأخر الحزم عنه. بعد التثبيت افتح طرفية جديدة لتصبح الأدوات ضمن <bdi dir="ltr">`PATH`</bdi>.
 
 <a id="get-the-binary"></a><a id="binary"></a>
 

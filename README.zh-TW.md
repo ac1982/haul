@@ -100,11 +100,15 @@ haul 可在 **macOS、Linux 與 Windows**（amd64 與 arm64）上執行。合併
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg yt-dlp           # Debian / Ubuntu；deno 請見 https://deno.com
+sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+pipx install "yt-dlp[default]" && pipx ensurepath
+curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows，一次安裝一個套件
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
+
+在 Linux 上，請用 pipx 安裝 yt-dlp，或從它的 [Releases](https://github.com/yt-dlp/yt-dlp/releases/latest) 下載 `yt-dlp_linux`（arm64 為 `yt-dlp_linux_aarch64`），不要使用發行版內建的套件：YouTube 經常變動，打包的版本容易過時。安裝完成後請開啟新的終端機，讓這些工具出現在 `PATH` 中。
 
 <a id="get-the-binary"></a><a id="binary"></a>
 

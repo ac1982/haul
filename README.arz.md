@@ -101,13 +101,17 @@ haul بيشتغل على **macOS وLinux وWindows** (amd64 وarm64). محتاج
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg yt-dlp           # Debian / Ubuntu; deno: https://deno.com
+sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+pipx install "yt-dlp[default]" && pipx ensurepath
+curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows: باكدج واحدة كل مرة
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
 
 </div>
+
+على Linux، نزّل yt-dlp بـ pipx أو من ملف <bdi dir="ltr">`yt-dlp_linux`</bdi> في [الإصدارات بتاعته](https://github.com/yt-dlp/yt-dlp/releases/latest) (<bdi dir="ltr">`yt-dlp_linux_aarch64`</bdi> على arm64)، مش من باكدجات التوزيعة: YouTube بيتغيّر كتير والباكدجات بتبقى قديمة. بعد التثبيت افتح ترمينال جديد عشان الأدوات تبقى في <bdi dir="ltr">`PATH`</bdi>.
 
 <a id="get-the-binary"></a><a id="binary"></a>
 

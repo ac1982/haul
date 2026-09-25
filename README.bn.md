@@ -100,11 +100,15 @@ haul চলে **macOS, Linux ও Windows**-এ (amd64 ও arm64)। ট্র�
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg yt-dlp           # Debian / Ubuntu; deno: https://deno.com
+sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+pipx install "yt-dlp[default]" && pipx ensurepath
+curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows, একবারে একটি প্যাকেজ
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
+
+Linux-এ yt-dlp ডিস্ট্রিবিউশনের প্যাকেজ থেকে নয়, pipx দিয়ে বা এর [রিলিজ](https://github.com/yt-dlp/yt-dlp/releases/latest) থেকে `yt-dlp_linux` (arm64-এ `yt-dlp_linux_aarch64`) নিয়ে ইনস্টল করুন: YouTube প্রায়ই বদলায়, আর প্যাকেজ করা সংস্করণ পিছিয়ে পড়ে। ইনস্টলের পরে নতুন টার্মিনাল খুলুন, যাতে টুলগুলো `PATH`-এ থাকে।
 
 <a id="get-the-binary"></a><a id="binary"></a>
 

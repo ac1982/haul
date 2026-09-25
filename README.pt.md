@@ -100,11 +100,15 @@ haul funciona em **macOS, Linux e Windows** (amd64 e arm64). Precisa do [ffmpeg]
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg yt-dlp           # Debian / Ubuntu; deno: https://deno.com
+sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+pipx install "yt-dlp[default]" && pipx ensurepath
+curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows, um pacote de cada vez
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
+
+No Linux, instale o yt-dlp com pipx ou com o binário `yt-dlp_linux` das suas [versões](https://github.com/yt-dlp/yt-dlp/releases/latest) (`yt-dlp_linux_aarch64` em arm64), e não pela sua distribuição: o YouTube muda com frequência e os pacotes ficam desatualizados. Depois de instalar, abra um novo terminal para que as ferramentas estejam no seu `PATH`.
 
 <a id="get-the-binary"></a><a id="binary"></a>
 
