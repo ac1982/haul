@@ -100,7 +100,7 @@ haul fonctionne sous **macOS, Linux et Windows** (amd64 et arm64). Il nécessite
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+sudo apt install ffmpeg pipx unzip curl  # Linux (Debian / Ubuntu)
 pipx install "yt-dlp[default]" && pipx ensurepath
 curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows, un paquet à la fois

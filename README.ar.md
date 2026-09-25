@@ -101,7 +101,7 @@ haul v1.0.0
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
-sudo apt install ffmpeg pipx unzip       # Linux (Debian / Ubuntu)
+sudo apt install ffmpeg pipx unzip curl  # Linux (Debian / Ubuntu)
 pipx install "yt-dlp[default]" && pipx ensurepath
 curl -fsSL https://deno.land/install.sh | sh -s -- -y
 winget install Gyan.FFmpeg               # Windows: حزمة واحدة في كل مرة
