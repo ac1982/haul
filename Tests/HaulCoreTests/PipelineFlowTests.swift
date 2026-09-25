@@ -192,7 +192,7 @@ import Testing
     }
 
     @Test func aPageSelectionOutOfRangeStillReportsThePages() async throws {
-        let (p, _) = try await pipeline { $0.pages = "99" }
+        let (p, _) = try await pipeline { $0.pages = "99"; $0.skipMux = true }
         await #expect { try await p.downloadPages(xInfo(pages: 2), id: .link(site: .x, url: "u")) }
             throws: { ($0 as? HaulError)?.kind == .input }
         let json = try JSON.parse(p.report.failureJSON(HaulError.input("x"), input: "u"))
