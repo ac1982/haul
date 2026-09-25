@@ -1,0 +1,67 @@
+# haul
+
+> A command-line video and audio downloader for YouTube, X, bilibili, Xiaoyuzhou and Apple Podcasts (macOS, Apple Silicon). Built to be driven by AI agents: `--json` output, no prompts without a terminal, meaningful exit codes.
+
+## Quick start
+
+1. Inspect: `haul info --json "<url>"` — the item, its pages, and each page's video and audio streams, each with an `index`.
+2. Download: `haul --json "<url>"` — best streams by default. Choose with `--video-stream N --audio-stream N` (indexes from step 1, under the same `-q`/`-c` flags), or with priorities: `-q 720p -c avc,m4a`.
+3. Read the result from stdout: `pages[].status` (`downloaded`, `skipped`, `listed`), `pages[].file` (absolute path), `pages[].sizeBytes`, `pages[].extraFiles`.
+
+With `--json`, stdout carries exactly one JSON document and nothing else; progress and logs go to stderr. Do not parse stderr.
+
+## Rules
+
+- Quote URLs: they contain `?` and `&`.
+- Never pass `-i` / `--interactive`: it needs a terminal and fails with exit code 2 without one.
+- Files go to the current directory; set it with `-w <dir>`. Names come from `-o <template>` (see `haul templates`), e.g. `-o "<uploader>/<title>"`.
+- Re-running is safe: a page whose output file exists is reported as `"status": "skipped", "reason": "exists"` and not downloaded again.
+- For lists (playlists of pages, seasons, shows, multi-video posts) choose pages with `-p`: `3`, `1-5`, `1,4`, `ALL`, `LATEST`. Without `-p`, a link to one episode takes that episode, otherwise all pages are taken; run `info --json` first when `pageCount` may be large.
+- Audio only: `--audio-only` (`.m4a`; podcasts keep `.mp3`/`.m4a`). Subtitles only: `--subtitle-only`. Cover only: `--cover-only`.
+- Stream URLs: `haul info --json --urls "<url>"` adds each stream's `url`. They expire quickly and some need the site's headers; prefer letting haul download.
+
+## Exit codes and errors
+
+| code | error.kind | meaning | what to do |
+|---|---|---|---|
+| 0 | – | done | read `pages[]` |
+| 1 | failed | network, site or muxing failure | retry later; add `--debug` for detail |
+| 2 | input | unsupported link, bad `-p`, stream index out of range | fix the input; `haul --help` lists the link forms |
+| 3 | dependency | ffmpeg / yt-dlp missing | `brew install ffmpeg yt-dlp deno` |
+| 4 | auth | login needed or expired | a person runs `haul login bilibili` |
+| 64 | – | unknown flag or missing argument | check `haul download --help` |
+| 130 | cancelled | cancelled | – |
+
+On failure stdout still has one JSON document: `{"ok": false, "error": {"kind", "message", "exitCode"}, ...}` plus whatever pages were done.
+
+## Sites
+
+- YouTube: `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…`. Needs yt-dlp and deno. Qualities: `1080p`, `720p60`…; codecs `av1 vp9 avc`, `m4a opus`. `-c avc,m4a` gives files QuickTime plays.
+- X: `x.com/<user>/status/<id>`. Needs yt-dlp. Video streams have the audio inside (`videoHasAudio: true`). A post with several videos has one page per video.
+- bilibili: `bilibili.com/video/BV…`, bangumi, courses, collections, favorites, user spaces, `b23.tv/…`, or a bare `BV…` / `av…` / `ep…` / `ss…`. Logged out it offers only lower qualities, typically up to 480P (`"loggedIn": false`); 1080P and above need `haul login bilibili`. Qualities: `8K`, `Dolby Vision`, `HDR`, `4K`, `1080P60`, `1080P+`, `1080P`, `720P`, `480P`, `360P`. `--danmaku` saves bullet comments.
+- Xiaoyuzhou: `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>`.
+- Apple Podcasts: `podcasts.apple.com/<cc>/podcast/<name>/id<show>?i=<episode>`; without `?i=` the show, oldest first (`-p LATEST` is the newest).
+
+## JSON document
+
+```
+ok: bool                 command: "download" | "info"      input: string
+site: "youtube" | "x" | "bilibili" | "xiaoyuzhou" | "applePodcasts"
+title, uploader?, published? (ISO 8601), description?, loggedIn? (bilibili), pageCount
+error?: { kind, message, exitCode }
+pages[]: {
+  index (what -p takes), id, title, durationSeconds?, selected,
+  status?: "listed" | "downloaded" | "skipped", reason?: "exists" | "archive" | "skip-mux",
+  file? (absolute), sizeBytes?, extraFiles? (absolute: subtitles, danmaku, raw tracks),
+  video?: [{ index, quality, resolution, codec, fps, bitrateKbps, sizeBytes, url? }],
+  audio?: [{ index, codec, bitrateKbps, sizeBytes, url? }],
+  videoHasAudio?, selectedVideo?, selectedAudio?, subtitles?: [language]
+}
+```
+
+## More
+
+- `haul --help` — sites, agent usage, exit codes, examples
+- `haul download --help` — every option
+- `haul templates` — file-name template variables
+- Config defaults: `~/.config/haul/config.json` (option names in camelCase)
