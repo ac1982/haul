@@ -45,7 +45,20 @@ func TestInstallHint(t *testing.T) {
 			t.Errorf("%q", got)
 		}
 	default:
-		if got != "install yt-dlp with your package manager (apt, dnf, pacman…) (deno: https://deno.com)" {
+		binary := "yt-dlp_linux"
+		if runtime.GOARCH == "arm64" {
+			binary = "yt-dlp_linux_aarch64"
+		}
+		want := `pipx install "yt-dlp[default]", or ` + binary + ` from https://github.com/yt-dlp/yt-dlp/releases/latest ` +
+			`(distribution packages are often too old for YouTube); deno: curl -fsSL https://deno.land/install.sh | sh -s -- -y`
+		if got != want {
+			t.Errorf("%q", got)
+		}
+		if got := InstallHint("ffmpeg deno"); got != "install ffmpeg with your package manager (apt, dnf, pacman…); "+
+			"deno: curl -fsSL https://deno.land/install.sh | sh -s -- -y" {
+			t.Errorf("%q", got)
+		}
+		if got := InstallHint("deno"); got != "curl -fsSL https://deno.land/install.sh | sh -s -- -y" {
 			t.Errorf("%q", got)
 		}
 	}

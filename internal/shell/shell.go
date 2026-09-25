@@ -157,19 +157,38 @@ func InstallHint(names string) string {
 		}
 		return strings.Join(cmds, "; ")
 	}
-	var apt []string
-	hint := ""
+	// Elsewhere yt-dlp and deno come from their projects: distributions ship yt-dlp too old for YouTube, and most
+	// have no deno. The rest comes from the package manager. Every hint after the first names its tool.
+	var managed, own []string
 	for _, p := range pkgs {
-		if p == "deno" {
-			hint = " (deno: https://deno.com)"
-			continue
+		if _, ok := linuxHints[p]; ok {
+			own = append(own, p)
+		} else {
+			managed = append(managed, p)
 		}
-		apt = append(apt, p)
 	}
-	if len(apt) == 0 {
-		return "see https://deno.com"
+	var hints []string
+	if len(managed) > 0 {
+		hints = append(hints, "install "+strings.Join(managed, " ")+" with your package manager (apt, dnf, pacman…)")
 	}
-	return "install " + strings.Join(apt, " ") + " with your package manager (apt, dnf, pacman…)" + hint
+	for _, p := range own {
+		hint := linuxHints[p]
+		if p == "yt-dlp" && runtime.GOARCH == "arm64" {
+			hint = strings.Replace(hint, "yt-dlp_linux", "yt-dlp_linux_aarch64", 1)
+		}
+		if len(hints) > 0 {
+			hint = p + ": " + hint
+		}
+		hints = append(hints, hint)
+	}
+	return strings.Join(hints, "; ")
+}
+
+// linuxHints install the tools that should not come from a Linux distribution.
+var linuxHints = map[string]string{
+	"yt-dlp": `pipx install "yt-dlp[default]", or yt-dlp_linux from https://github.com/yt-dlp/yt-dlp/releases/latest ` +
+		`(distribution packages are often too old for YouTube)`,
+	"deno": "curl -fsSL https://deno.land/install.sh | sh -s -- -y",
 }
 
 // wingetIDs are the winget package ids of the tools haul drives.
