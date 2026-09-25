@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Toolchain
+        run: swift --version
+      - name: Test
+        run: swift test
+      - name: Build (release, arm64)
+        run: |
+          swift build -c release --product haul
+          file .build/release/haul | grep -q arm64
