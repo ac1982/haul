@@ -1,0 +1,16 @@
+# build output
+/haul
+/haul.exe
+/dist/
+/build/
+
+# downloads made inside the repo while trying things
+*.mp4
+*.m4a
+*.mp3
+*.part
+*.part[0-9]*
+.haul-*/
+/qrcode.png
+
+.DS_Store
