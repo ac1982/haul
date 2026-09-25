@@ -34,7 +34,18 @@ done
 umask 077
 signing_tmp=$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/haul-signing.XXXXXX")
 keychain="$signing_tmp/signing.keychain-db"
+# search_list sets the user's keychain search list to the given keychains followed by the saved original list.
+search_list() {
+  python3 - "$signing_tmp/search-list.txt" "$@" <<'PY'
+import pathlib, shlex, subprocess, sys
+paths = shlex.split(pathlib.Path(sys.argv[1]).read_text())
+subprocess.run(['security', 'list-keychains', '-d', 'user', '-s', *sys.argv[2:], *paths], check=True)
+PY
+}
 cleanup() {
+  if [[ -f "$signing_tmp/search-list.txt" ]]; then
+    search_list >/dev/null 2>&1 || true
+  fi
   security delete-keychain "$keychain" >/dev/null 2>&1 || true
   rm -rf "$signing_tmp"
 }
@@ -47,14 +58,11 @@ printf '%s' "$MACOS_INSTALLER_P12_BASE64" | base64 -D > "$signing_tmp/installer.
 printf '%s' "$APPLE_API_KEY_P8" > "$signing_tmp/notary.p8"
 unset MACOS_APPLICATION_P12_BASE64 MACOS_INSTALLER_P12_BASE64 APPLE_API_KEY_P8
 keychain_password=$(openssl rand -hex 32)
-# Keep the user's search list intact; all signing calls use the keychain explicitly.
+# codesign and productbuild find the private keys and the intermediate certificate only through the search list,
+# so the keychain joins it while signing; cleanup restores the original list.
 security list-keychains -d user > "$signing_tmp/search-list.txt"
 security create-keychain -p "$keychain_password" "$keychain"
-python3 - "$signing_tmp/search-list.txt" <<'PY'
-import pathlib, shlex, subprocess, sys
-paths = shlex.split(pathlib.Path(sys.argv[1]).read_text())
-subprocess.run(['security', 'list-keychains', '-d', 'user', '-s', *paths], check=True)
-PY
+search_list "$keychain"
 security set-keychain-settings -lut 21600 "$keychain"
 security unlock-keychain -p "$keychain_password" "$keychain"
 for name in application installer; do
@@ -63,9 +71,14 @@ for name in application installer; do
 done
 unset MACOS_CERTIFICATE_PASSWORD
 # Public intermediate certificate; macOS supplies the trusted Apple root.
-curl --fail --silent --show-error --location \
+curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
   https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer \
   -o "$signing_tmp/DeveloperIDG2CA.cer"
+if [[ $(shasum -a 256 "$signing_tmp/DeveloperIDG2CA.cer" | cut -d ' ' -f 1) != \
+      f16cd3c54c7f83cea4bf1a3e6a0819c8aaa8e4a1528fd144715f350643d2df3a ]]; then
+  echo 'Unexpected Developer ID G2 intermediate certificate' >&2
+  exit 1
+fi
 security import "$signing_tmp/DeveloperIDG2CA.cer" -k "$keychain"
 security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
   -k "$keychain_password" "$keychain" >/dev/null
