@@ -34,7 +34,7 @@ func TestPadAndTruncateMeasureCells(t *testing.T) {
 
 func TestPrettyPathUsesTilde(t *testing.T) {
 	home, _ := os.UserHomeDir()
-	if got := PrettyPath(filepath.Join(home, "Movies", "a.mp4")); got != "~/Movies/a.mp4" {
+	if got := PrettyPath(filepath.Join(home, "Movies", "a.mp4")); got != filepath.Join("~", "Movies", "a.mp4") {
 		t.Errorf("home: %q", got)
 	}
 	if runtime.GOOS == "windows" {

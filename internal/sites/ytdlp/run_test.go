@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"context"
+	"github.com/ac1982/haul/internal/shell"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -93,8 +94,8 @@ func TestMissingYtDlpIsADependencyError(t *testing.T) {
 		ex   *Extractor
 		want string
 	}{
-		{NewYouTube(nil, Options{Path: missing}), "YouTube links need yt-dlp: brew install yt-dlp deno"},
-		{NewX(nil, Options{Path: missing}), "X links need yt-dlp: brew install yt-dlp"},
+		{NewYouTube(nil, Options{Path: missing}), "YouTube links need yt-dlp: " + shell.InstallHint("yt-dlp deno")},
+		{NewX(nil, Options{Path: missing}), "X links need yt-dlp: " + shell.InstallHint("yt-dlp")},
 	} {
 		_, err := c.ex.Resolve(context.Background(), "u")
 		if !errs.Is(err, errs.Dependency) || err.Error() != c.want {

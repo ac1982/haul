@@ -123,7 +123,7 @@ func TestSummaryAndHeader(t *testing.T) {
 	v := video(120, "4K", "HEVC", 3840, 2160, 60, 4493)
 	a := media.AudioFormat{Codec: "M4A", Bitrate: 172}
 	lines := Summary("/tmp/out.mp4", 300<<20, &v, &a, 24, plain)
-	if lines[0] != "✓ Done  /tmp/out.mp4" || !strings.Contains(lines[1], "300.0 MB") || !strings.Contains(lines[1], "4K HEVC 60fps + M4A 172 kbps") ||
+	if lines[0] != "✓ Done  "+console.PrettyPath("/tmp/out.mp4") || !strings.Contains(lines[1], "300.0 MB") || !strings.Contains(lines[1], "4K HEVC 60fps + M4A 172 kbps") ||
 		!strings.Contains(lines[1], "24s") {
 		t.Errorf("summary: %q", lines)
 	}

@@ -321,11 +321,11 @@ func TestListingAListShowsEntriesUntilOneIsChosen(t *testing.T) {
 func TestPageSelectionOutOfRangeStillReportsTheItem(t *testing.T) {
 	f := newFixture(t)
 	f.site.items["post"] = f.post(2, testkit.Media{})
-	res, err := f.run("test:post", func(o *Options) { o.Pages = "99" })
+	res, err := f.run("test:post", func(o *Options) { o.Pages = "99"; o.Content.NoMux = true })
 	if !errs.Is(err, errs.Input) || res == nil || len(res.Entries) != 2 {
 		t.Errorf("err = %v, res = %v", err, res)
 	}
-	_, err = f.run("test:post", func(o *Options) { o.Pages = "x" })
+	_, err = f.run("test:post", func(o *Options) { o.Pages = "x"; o.Content.NoMux = true })
 	if !errs.Is(err, errs.Input) {
 		t.Errorf("bad spec: %v", err)
 	}

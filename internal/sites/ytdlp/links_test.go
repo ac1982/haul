@@ -1,6 +1,10 @@
 package ytdlp
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/ac1982/haul/internal/shell"
+)
 
 func TestYouTubeIDs(t *testing.T) {
 	t.Parallel()
@@ -76,11 +80,11 @@ func TestInfo(t *testing.T) {
 	t.Parallel()
 	yt, x := NewYouTube(nil, Options{}).Info(), NewX(nil, Options{}).Info()
 	if yt.Site != "youtube" || yt.Name != "YouTube" || yt.Unit != "video" || yt.OwnerLabel != "channel" ||
-		len(yt.Requires) != 1 || yt.Requires[0].Name != "yt-dlp" || yt.Requires[0].Install != "brew install yt-dlp deno" {
+		len(yt.Requires) != 1 || yt.Requires[0].Name != "yt-dlp" || yt.Requires[0].Install != shell.InstallHint("yt-dlp deno") {
 		t.Errorf("YouTube info = %+v", yt)
 	}
 	if x.Site != "x" || x.Name != "X" || x.Unit != "video" || x.OwnerLabel != "by" ||
-		len(x.Requires) != 1 || x.Requires[0].Install != "brew install yt-dlp" {
+		len(x.Requires) != 1 || x.Requires[0].Install != shell.InstallHint("yt-dlp") {
 		t.Errorf("X info = %+v", x)
 	}
 }
