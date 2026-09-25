@@ -1,0 +1,8 @@
+syntax = "proto2";
+option swift_prefix = "Bili";
+
+message FawkesReq {
+    optional string appkey = 1;
+    optional string env = 2;
+    optional string sessionId = 3;
+}
