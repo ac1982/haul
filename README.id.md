@@ -115,8 +115,9 @@ Unduh arsip untuk sistem Anda dari [Releases](../../releases) — `haul-<version
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: biner belum dinotarisasi
 ```
+
+Alur rilis saat ini menandatangani versi macOS dan mengirimkannya untuk notarisasi Apple. Pilih `haul-<version>-darwin-<arch>.pkg` untuk memasang `haul` ke `/usr/local/bin` dengan tiket notarisasi terlampir. Arsip berisi program bertanda tangan yang sama, tetapi pemeriksaan pertama mungkin memerlukan internet. Rilis lama mungkin belum ditandatangani.
 
 <details>
 <summary><strong>Bangun dari sumber</strong> · Go 1.26+</summary>

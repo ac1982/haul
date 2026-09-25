@@ -120,10 +120,11 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: الملف التنفيذي مش موثّق عند Apple
 ```
 
 </div>
+
+مسار الإصدار الحالي بيوقّع نسخ macOS وبيوثّقها عند Apple. اختار <bdi dir="ltr">`haul-<version>-darwin-<arch>.pkg`</bdi> عشان يثبت <bdi dir="ltr">`haul`</bdi> في <bdi dir="ltr">`/usr/local/bin`</bdi> ومعاه تذكرة التوثيق. الأرشيف فيه نفس البرنامج الموقّع، بس أول تحقق ممكن يحتاج إنترنت. الإصدارات القديمة ممكن تكون من غير توقيع.
 
 <details>
 <summary><strong>ابني من الكود المصدري</strong> · Go 1.26+</summary>

@@ -115,8 +115,9 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: बाइनरी नोटराइज़ नहीं है
 ```
+
+वर्तमान रिलीज़ प्रक्रिया macOS संस्करणों पर हस्ताक्षर करती है और Apple से नोटरीकरण कराती है। `haul-<version>-darwin-<arch>.pkg` चुनें: इसमें नोटरीकरण टिकट जुड़ा है और यह `haul` को `/usr/local/bin` में इंस्टॉल करता है। आर्काइव में वही हस्ताक्षरित प्रोग्राम है, लेकिन पहली जाँच के लिए इंटरनेट लग सकता है। पुराने संस्करण बिना हस्ताक्षर के हो सकते हैं।
 
 <details>
 <summary><strong>सोर्स से बिल्ड करें</strong> · Go 1.26+</summary>

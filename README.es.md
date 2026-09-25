@@ -115,8 +115,9 @@ Descarga el archivo comprimido para tu sistema desde [Releases](../../releases) 
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: el binario no está notarizado
 ```
+
+El flujo actual firma las versiones de macOS y obtiene su notarización de Apple. El instalador `haul-<version>-darwin-<arch>.pkg` incluye el comprobante e instala `haul` en `/usr/local/bin`. El archivo comprimido contiene el mismo ejecutable firmado, pero la primera verificación puede necesitar internet. Las versiones antiguas pueden no estar firmadas.
 
 <details>
 <summary><strong>Compilar desde el código fuente</strong> · Go 1.26+</summary>

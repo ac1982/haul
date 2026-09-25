@@ -115,8 +115,9 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: バイナリは公証されていません
 ```
+
+現在のリリース処理では macOS 版に署名し、Apple の公証を受けます。`haul-<version>-darwin-<arch>.pkg` には公証チケットが添付され、`haul` を `/usr/local/bin` にインストールします。アーカイブも同じ署名済み実行ファイルを含みますが、初回の検証にはネット接続が必要な場合があります。過去のリリースは未署名の場合があります。
 
 <details>
 <summary><strong>ソースからビルド</strong> · Go 1.26+</summary>

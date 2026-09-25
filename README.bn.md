@@ -115,8 +115,9 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: বাইনারিটি নোটারাইজড নয়
 ```
+
+বর্তমান রিলিজ প্রক্রিয়া macOS সংস্করণে স্বাক্ষর করে এবং Apple-এর নোটারাইজেশন নেয়। `haul-<version>-darwin-<arch>.pkg` বেছে নিন: এতে নোটারাইজেশন টিকিট যুক্ত থাকে এবং `haul`-কে `/usr/local/bin`-এ ইনস্টল করে। আর্কাইভে একই স্বাক্ষরিত প্রোগ্রাম থাকে, তবে প্রথম যাচাইয়ে ইন্টারনেট লাগতে পারে। পুরোনো সংস্করণ স্বাক্ষরবিহীন হতে পারে।
 
 <details>
 <summary><strong>সোর্স থেকে বিল্ড</strong> · Go 1.26+</summary>

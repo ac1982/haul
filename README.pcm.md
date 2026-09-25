@@ -108,8 +108,9 @@ Download the archive for your system from [Releases](../../releases), `haul-<ver
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: the binary never get Apple notarization
 ```
+
+The current release workflow dey sign macOS versions and get Apple notarization. Choose `haul-<version>-darwin-<arch>.pkg`: e get notarization ticket inside and go install `haul` for `/usr/local/bin`. The archive get the same signed program, but first verification fit need internet. Old releases fit no get signature.
 
 <details>
 <summary><strong>Build from source</strong> · Go 1.26+</summary>

@@ -115,8 +115,9 @@ Téléchargez l’archive correspondant à votre système depuis [Releases](../.
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS : le binaire n’est pas notarié
 ```
+
+Le processus actuel signe les versions macOS et les fait notarier par Apple. Choisissez `haul-<version>-darwin-<arch>.pkg` pour installer `haul` dans `/usr/local/bin` avec le ticket de notarisation joint. L’archive contient le même exécutable signé, mais sa première vérification peut nécessiter Internet. Les anciennes versions peuvent ne pas être signées.
 
 <details>
 <summary><strong>Compiler depuis les sources</strong> · Go 1.26+</summary>

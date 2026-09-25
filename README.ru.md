@@ -115,8 +115,9 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: бинарный файл не прошёл нотариализацию
 ```
+
+Текущий процесс выпуска подписывает версии macOS и отправляет их на нотариализацию Apple. Установщик `haul-<version>-darwin-<arch>.pkg` содержит билет нотариализации и устанавливает `haul` в `/usr/local/bin`. В архиве тот же подписанный файл, но первая проверка может потребовать интернет. Старые выпуски могут быть неподписанными.
 
 <details>
 <summary><strong>Сборка из исходников</strong> · Go 1.26+</summary>

@@ -103,8 +103,9 @@ Download the archive for your system from [Releases](../../releases) — `haul-<
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS: the binary is not notarized
 ```
+
+macOS releases built by the current workflow are signed and notarized with Apple. Choose `haul-<version>-darwin-<arch>.pkg` for an installer with an attached notarization ticket; it installs `haul` into `/usr/local/bin`. The archive contains the same signed executable, but its first verification may need an internet connection. Older releases may be unsigned.
 
 <details>
 <summary><strong>Build from source</strong> · Go 1.26+</summary>

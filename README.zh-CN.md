@@ -115,8 +115,9 @@ winget install DenoLand.Deno
 ```sh
 tar -xzf haul-*-darwin-arm64.tar.gz
 mkdir -p ~/.local/bin && mv haul-*/haul ~/.local/bin/
-xattr -d com.apple.quarantine ~/.local/bin/haul   # macOS：二进制文件尚未公证
 ```
+
+当前发布流程会对 macOS 版本签名并提交 Apple 公证。可选择 `haul-<version>-darwin-<arch>.pkg` 安装包，内附公证票据，将 `haul` 安装到 `/usr/local/bin`。压缩包包含同一份已签名程序，但首次验证可能需要联网。旧版本可能未签名。
 
 <details>
 <summary><strong>从源码构建</strong> · Go 1.26+</summary>
