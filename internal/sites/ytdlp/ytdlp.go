@@ -1,6 +1,6 @@
-// Package ytdlp reads YouTube and X through yt-dlp. YouTube's player challenges need yt-dlp's JavaScript solver, and
-// X changes its API often; letting yt-dlp find the streams keeps those fixes a `brew upgrade` away. haul still
-// downloads the streams itself, so it only asks yt-dlp for metadata (`-J`).
+// Package ytdlp reads YouTube, X and Weibo through yt-dlp. YouTube's player challenges need yt-dlp's JavaScript
+// solver, and X changes its API often; letting yt-dlp find the streams keeps those fixes a `brew upgrade` away. haul
+// still downloads the streams itself, so it only asks yt-dlp for metadata (`-J`).
 package ytdlp
 
 import (
@@ -25,9 +25,10 @@ type Options struct {
 	Path string
 }
 
-// Extractor reads one yt-dlp backed site: YouTube or X.
+// Extractor reads one yt-dlp backed site: YouTube, X or Weibo.
 type Extractor struct {
 	profile  *profile
+	client   *httpx.Client
 	opts     Options
 	denoOnce sync.Once
 }
@@ -43,6 +44,11 @@ func NewYouTube(_ *httpx.Client, opts Options) *Extractor {
 // NewX reads X (Twitter) posts; see NewYouTube about the client.
 func NewX(_ *httpx.Client, opts Options) *Extractor {
 	return &Extractor{profile: &xProfile, opts: opts}
+}
+
+// NewWeibo reads Weibo videos. The client only expands t.cn short links; yt-dlp reads the rest.
+func NewWeibo(client *httpx.Client, opts Options) *Extractor {
+	return &Extractor{profile: &weiboProfile, client: client, opts: opts}
 }
 
 // Info describes the site.
@@ -64,6 +70,13 @@ func (e *Extractor) Resolve(ctx context.Context, link string) (*media.Item, erro
 				console.Warn("deno not found; yt-dlp may miss most YouTube formats: " + shell.InstallHint("deno"))
 			}
 		})
+	}
+	if e.profile.expand != nil {
+		expanded, err := e.profile.expand(ctx, e.client, link)
+		if err != nil {
+			return nil, err
+		}
+		link = expanded
 	}
 	root, err := run(ctx, ytdlp, link)
 	if err != nil {

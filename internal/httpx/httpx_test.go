@@ -36,6 +36,12 @@ func TestClient(t *testing.T) {
 	if u, err := c.FinalURL(ctx, "https://short.test/x", nil); err != nil || u != "https://api.test/final?x=1" {
 		t.Errorf("FinalURL = %q, %v", u, err)
 	}
+	if u, err := c.Location(ctx, "https://short.test/x", nil); err != nil || u != "https://api.test/final?x=1" {
+		t.Errorf("Location = %q, %v", u, err)
+	}
+	if u, err := c.Location(ctx, "https://api.test/final", nil); !errors.As(err, &se) || se.Status != 200 {
+		t.Errorf("Location without a redirect = %q, %v", u, err)
+	}
 	body, err := c.PostForm(ctx, "https://api.test/form", httpx.Header("Host", "grpc.test"), [][2]string{{"a", "1 2"}, {"b", "x&y"}})
 	if err != nil || string(body) != "application/x-www-form-urlencoded x&y grpc.test" {
 		t.Errorf("PostForm = %q, %v", body, err)

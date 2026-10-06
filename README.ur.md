@@ -207,6 +207,7 @@ haul -q 720p -c avc,m4a "https://youtu.be/DdCEmlAydcw"  # QuickTime کے لیے 
 | --- | --- | --- |
 | **YouTube** | <bdi dir="ltr">`youtube.com/watch?v=…`</bdi>, <bdi dir="ltr">`youtu.be/…`</bdi>, <bdi dir="ltr">`/shorts/…`</bdi>, <bdi dir="ltr">`/embed/…`</bdi>, <bdi dir="ltr">`/live/…`</bdi> | yt-dlp, deno |
 | **X** | <bdi dir="ltr">`x.com/<user>/status/<id>`</bdi>, <bdi dir="ltr">`twitter.com/…`</bdi>؛ <bdi dir="ltr">`/video/<n>`</bdi> پوسٹ کی ایک ویڈیو منتخب کرتا ہے | yt-dlp |
+| **Weibo** | <bdi dir="ltr">`weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…`</bdi> | yt-dlp |
 | **bilibili** | ویڈیوز، bangumi، کورسز، مجموعے، سیریز، پسندیدہ، صارف صفحات، <bdi dir="ltr">`b23.tv`</bdi>، براہ راست <bdi dir="ltr">`BV…`</bdi> <bdi dir="ltr">`av…`</bdi> <bdi dir="ltr">`ep…`</bdi> <bdi dir="ltr">`ss…`</bdi> <bdi dir="ltr">`md…`</bdi> | – |
 | **Xiaoyuzhou** | <bdi dir="ltr">`xiaoyuzhoufm.com/episode/<id>`</bdi>, <bdi dir="ltr">`/podcast/<id>`</bdi> | – |
 | **Apple Podcasts** | <bdi dir="ltr">`podcasts.apple.com/<cc>/podcast/<name>/id<show>`</bdi>؛ ایک قسط کے لیے <bdi dir="ltr">`?i=<episode>`</bdi> کے ساتھ | – |

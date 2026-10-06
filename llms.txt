@@ -1,6 +1,6 @@
 # haul
 
-> A command-line video and audio downloader for YouTube, X, bilibili, Xiaoyuzhou and Apple Podcasts, as one binary for macOS, Linux and Windows. Built to be driven by AI agents: `--json` output, no prompts without a terminal, meaningful exit codes.
+> A command-line video and audio downloader for YouTube, X, Weibo, bilibili, Xiaoyuzhou and Apple Podcasts, as one binary for macOS, Linux and Windows. Built to be driven by AI agents: `--json` output, no prompts without a terminal, meaningful exit codes.
 
 ## Quick start
 
@@ -48,6 +48,7 @@ On failure, stdout still has one JSON document: `"ok": false` and `"error": {"ki
 
 - **YouTube**: `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…`. Needs yt-dlp and deno. Qualities `1080p`, `720p60`… Video codecs `AV1`, `VP9`, `AVC`; audio `M4A` (AAC), `OPUS`. `-c avc,m4a` gives files that QuickTime plays.
 - **X**: `x.com/<user>/status/<id>` or `twitter.com/…`; `…/video/<n>` takes one video of a post. Needs yt-dlp. Each video stream already includes the audio (`videoHasAudio: true`, `hasAudio: true`, no `audio`); the codec may show as `MP4`. A post with several videos has one page per video.
+- **Weibo**: `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…` or `/detail/…`, and `t.cn/…` short links. Needs yt-dlp. Like X, each video stream includes the audio.
 - **bilibili**: `bilibili.com/video/BV…`, bangumi, courses, collections, favorites, user spaces, `b23.tv/…`, or a bare `BV…` / `av…` / `ep…` / `ss…`. Logged out, it offers only lower qualities, typically up to 480P (`"loggedIn": false`); 1080P and above need `haul login bilibili`. Qualities `8K`, `Dolby Vision`, `HDR`, `4K`, `1080P60`, `1080P+`, `1080P`, `720P`, `480P`, `360P`. Codecs `AV1`, `HEVC`, `AVC`. `--danmaku` saves the bullet comments.
 - **Xiaoyuzhou**: `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>`. A show page lists only its latest episodes.
 - **Apple Podcasts**: `podcasts.apple.com/<cc>/podcast/<name>/id<show>?i=<episode>`, or without `?i=` for the whole show. Apple returns only a show's recent episodes, so `pageCount` can be well below the real total; download older episodes by their episode link.
@@ -60,7 +61,7 @@ On failure, stdout still has one JSON document: `"ok": false` and `"error": {"ki
 
 ```
 ok: bool          command: "download" | "info"          input: string
-site: "youtube" | "x" | "bilibili" | "xiaoyuzhou" | "applePodcasts"
+site: "youtube" | "x" | "weibo" | "bilibili" | "xiaoyuzhou" | "applePodcasts"
 title, uploader?, published? (ISO 8601, UTC), description?, loggedIn? (bilibili only), pageCount
 files: [absolute path]          output files of the pages taken, new or skipped; [] for info
 error?: { kind, message, exitCode }

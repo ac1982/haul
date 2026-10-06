@@ -1,9 +1,13 @@
 package ytdlp
 
 import (
+	"context"
+	"net/http"
 	"testing"
 
+	"github.com/ac1982/haul/internal/errs"
 	"github.com/ac1982/haul/internal/shell"
+	"github.com/ac1982/haul/internal/testkit"
 )
 
 func TestYouTubeIDs(t *testing.T) {
@@ -86,5 +90,57 @@ func TestInfo(t *testing.T) {
 	if x.Site != "x" || x.Name != "X" || x.Unit != "video" || x.OwnerLabel != "by" ||
 		len(x.Requires) != 1 || x.Requires[0].Install != shell.InstallHint("yt-dlp") {
 		t.Errorf("X info = %+v", x)
+	}
+}
+
+func TestWeiboLinks(t *testing.T) {
+	t.Parallel()
+	w := NewWeibo(nil, Options{})
+	cases := map[string]string{
+		"https://weibo.com/7488567745/5349877815182160":                         "https://weibo.com/7488567745/5349877815182160",
+		"www.weibo.com/1/Qa2bC3dE?refer=x":                                      "https://www.weibo.com/1/Qa2bC3dE?refer=x",
+		"https://m.weibo.cn/status/5349877815182160":                            "https://m.weibo.cn/status/5349877815182160",
+		"https://m.weibo.cn/detail/Qa2bC3dE":                                    "https://m.weibo.cn/detail/Qa2bC3dE",
+		"https://weibo.com/tv/show/1034:5349876503085103?from=old_pc_videoshow": "https://weibo.com/tv/show/1034:5349876503085103?from=old_pc_videoshow",
+		"https://video.weibo.com/show?fid=1034:5349876503085103":                "https://video.weibo.com/show?fid=1034:5349876503085103",
+		"http://t.cn/AXWYBa43":                                                  "https://t.cn/AXWYBa43",
+		"https://weibo.com/u/7488567745":                                        "",
+		"https://weibo.com/tv/show/abc":                                         "",
+		"https://video.weibo.com/show?fid=1":                                    "",
+		"https://t.cn/":                                                         "",
+		"https://notweibo.com/1/2":                                              "",
+	}
+	for link, want := range cases {
+		got, ok := w.Match(link)
+		if got != want || ok != (want != "") {
+			t.Errorf("Match(%q) = %q, %v; want %q", link, got, ok, want)
+		}
+	}
+	if info := w.Info(); info.Site != "weibo" || info.Name != "Weibo" || info.Requires[0].Install != shell.InstallHint("yt-dlp") {
+		t.Errorf("Weibo info = %+v", info)
+	}
+}
+
+func TestWeiboShortLinks(t *testing.T) {
+	t.Parallel()
+	stub := testkit.NewStub()
+	stub.On("t.cn/video", func(*http.Request) testkit.Response {
+		return testkit.Response{Redirect: "https://video.weibo.com/show?fid=1034:5349876503085103"}
+	})
+	stub.On("t.cn/page", func(*http.Request) testkit.Response { return testkit.Response{Redirect: "https://example.com/a"} })
+	stub.On("t.cn/gone", func(*http.Request) testkit.Response { return testkit.Status(404) })
+	ctx, c := context.Background(), stub.Client()
+	if got, err := expandWeibo(ctx, c, "https://t.cn/video"); err != nil || got != "https://video.weibo.com/show?fid=1034:5349876503085103" {
+		t.Errorf("expand = %q, %v", got, err)
+	}
+	if _, err := expandWeibo(ctx, c, "https://t.cn/page"); !errs.Is(err, errs.Input) {
+		t.Errorf("a short link to another site = %v", err)
+	}
+	if _, err := expandWeibo(ctx, c, "https://t.cn/gone"); err == nil {
+		t.Error("a short link that does not redirect expanded")
+	}
+	// Only short links are expanded; the visitor wall behind the video page is never reached.
+	if got, err := expandWeibo(ctx, c, "https://weibo.com/1/2"); err != nil || got != "https://weibo.com/1/2" || len(stub.Requests("weibo.com")) != 0 {
+		t.Errorf("expand of a full link = %q, %v", got, err)
 	}
 }

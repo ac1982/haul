@@ -66,7 +66,7 @@ func entry(n jsonv.Value, index int, title string, parent jsonv.Value, p *profil
 	if err != nil {
 		return nil, errs.New("yt-dlp answered without a video id")
 	}
-	formats, header, err := streams(n.Get("formats"), p)
+	formats, header, err := streams(n.Get("formats"), n.Get("duration").FloatOr(0), p)
 	if err != nil {
 		return nil, err
 	}

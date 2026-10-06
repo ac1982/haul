@@ -170,6 +170,7 @@ haul -q 720p -c avc,m4a "https://youtu.be/DdCEmlAydcw"  # H.264 + AAC so QuickTi
 | --- | --- | --- |
 | **YouTube** | `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…` | yt-dlp, deno |
 | **X** | `x.com/<user>/status/<id>`, `twitter.com/…`; `/video/<n>` go choose one video inside the post | yt-dlp |
+| **Weibo** | `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…` | yt-dlp |
 | **bilibili** | Videos, bangumi, courses, collections, series, favourites, user spaces, `b23.tv`, and bare `BV…` `av…` `ep…` `ss…` `md…` | – |
 | **Xiaoyuzhou** | `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>` | – |
 | **Apple Podcasts** | `podcasts.apple.com/<cc>/podcast/<name>/id<show>`, with `?i=<episode>` for one episode | – |

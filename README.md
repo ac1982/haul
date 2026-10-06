@@ -86,7 +86,7 @@ haul v1.0.0
 
 ## Install
 
-haul runs on **macOS, Linux and Windows** (amd64 and arm64). It needs [ffmpeg](https://ffmpeg.org) for muxing; YouTube and X also need [yt-dlp](https://github.com/yt-dlp/yt-dlp), and YouTube's player challenges need [deno](https://deno.com):
+haul runs on **macOS, Linux and Windows** (amd64 and arm64). It needs [ffmpeg](https://ffmpeg.org) for muxing; YouTube, X and Weibo also need [yt-dlp](https://github.com/yt-dlp/yt-dlp), and YouTube's player challenges need [deno](https://deno.com):
 
 ```sh
 brew install ffmpeg yt-dlp deno          # macOS
@@ -161,6 +161,7 @@ haul download --help          every option
 |---|---|---|
 | **YouTube** | `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…` | yt-dlp, deno |
 | **X** | `x.com/<user>/status/<id>`, `twitter.com/…`; `/video/<n>` picks one video of a post | yt-dlp |
+| **Weibo** | `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…` | yt-dlp |
 | **bilibili** | videos, bangumi, courses, collections, series, favorites, user spaces, `b23.tv`, bare `BV…` `av…` `ep…` `ss…` `md…` | – |
 | **Xiaoyuzhou** | `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>` | – |
 | **Apple Podcasts** | `podcasts.apple.com/<cc>/podcast/<name>/id<show>`, with `?i=<episode>` for one episode | – |
@@ -320,6 +321,13 @@ X needs no login for public posts. Its videos are single MP4 files with the audi
 </details>
 
 <details>
+<summary><strong>Weibo</strong> · public videos and t.cn links</summary>
+
+Weibo needs no login for public videos. Like X, its videos are single MP4 files with the audio inside. A `t.cn` short link is expanded by haul before yt-dlp reads the video; one that leads somewhere other than a Weibo video is an input error naming where it goes.
+
+</details>
+
+<details>
 <summary><strong>bilibili</strong> · login, higher qualities, and danmaku</summary>
 
 bilibili is read through its own web, TV, APP (gRPC) and international APIs. Logged out, it offers only lower qualities (typically up to 480P); log in for 1080P, 4K, HDR, Dolby Vision and Hi-Res audio:
@@ -369,7 +377,7 @@ Xiaoyuzhou and Apple Podcasts need no yt-dlp: Xiaoyuzhou pages carry the audio l
 ```sh
 go build ./cmd/haul
 go test ./...                                  # offline, a few seconds
-HAUL_LIVE=1 go test -run Live ./internal/...   # also hits bilibili, YouTube, X and Apple Podcasts
+HAUL_LIVE=1 go test -run Live ./internal/...   # also hits bilibili, YouTube, X, Weibo and Apple Podcasts
 ```
 
 The offline suite never touches the network: tests talk to a stub `http.RoundTripper` that answers from recorded API responses and from simulated CDNs (range-only servers, dropped connections, servers that ignore ranges). End-to-end tests mux with a real ffmpeg and check the result with ffprobe; they are skipped when ffmpeg is not installed. See [AGENTS.md](AGENTS.md) for the architecture and conventions.

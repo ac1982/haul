@@ -177,6 +177,7 @@ haul -q 720p -c avc,m4a "https://youtu.be/DdCEmlAydcw"  # H.264 + AAC，適合 Q
 |---|---|---|
 | **YouTube** | `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…` | yt-dlp, deno |
 | **X** | `x.com/<user>/status/<id>`, `twitter.com/…`；`/video/<n>` 選擇貼文中的某部影片 | yt-dlp |
+| **微博** | `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…` | yt-dlp |
 | **bilibili** | 影片、番劇、課程、合集、系列、收藏夾、使用者空間、`b23.tv`，以及直接輸入的 ID `BV…` `av…` `ep…` `ss…` `md…` | – |
 | **Xiaoyuzhou** | `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>` | – |
 | **Apple Podcasts** | `podcasts.apple.com/<cc>/podcast/<name>/id<show>`；加上 `?i=<episode>` 選擇單集 | – |

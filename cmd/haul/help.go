@@ -19,7 +19,8 @@ func sites() []extract.Info {
 	c := httpx.Default
 	var out []extract.Info
 	for _, x := range []extract.Extractor{ytdlp.NewYouTube(c, ytdlp.Options{}), ytdlp.NewX(c, ytdlp.Options{}),
-		bilibili.New(c, bilibili.DefaultOptions()), podcast.NewXiaoyuzhou(c), podcast.NewApple(c)} {
+		ytdlp.NewWeibo(c, ytdlp.Options{}), bilibili.New(c, bilibili.DefaultOptions()), podcast.NewXiaoyuzhou(c),
+		podcast.NewApple(c)} {
 		out = append(out, x.Info())
 	}
 	return out
@@ -31,8 +32,8 @@ func rootHelp() string {
 		siteLines = append(siteLines, "  "+s.Name, "      "+s.Links)
 	}
 	home := console.PrettyPath(storage.Home())
-	return `OVERVIEW: Download video and audio from YouTube, X, bilibili, Xiaoyuzhou and
-Apple Podcasts.
+	return `OVERVIEW: Download video and audio from YouTube, X, Weibo, bilibili, Xiaoyuzhou
+and Apple Podcasts.
 
 USAGE: haul <url> [options]  |  haul <command> [options]
 
@@ -48,7 +49,8 @@ COMMANDS:
 
 SITES
 ` + strings.Join(siteLines, "\n") + `
-  YouTube and X need yt-dlp (and deno for YouTube). Muxing needs ffmpeg.
+  YouTube, X and Weibo need yt-dlp (and deno for YouTube). Muxing needs
+  ffmpeg.
 
 FOR SCRIPTS AND AI AGENTS
   haul info <url> --json   inspect: the item and its pages; for one
@@ -142,10 +144,10 @@ JSON document: every page, the streams chosen and the files written.
 		b.WriteString("\nARGUMENTS:\n  <site>                  The site: bilibili.\n")
 		b.WriteString(flagHelp(loginFlags, false))
 	case "info":
-		b.WriteString("\nARGUMENTS:\n  <url>                   A YouTube, X, bilibili, Xiaoyuzhou or Apple Podcasts\n                          link, or a bilibili id (BV…, av…, ep…, ss…).\n")
+		b.WriteString("\nARGUMENTS:\n  <url>                   A YouTube, X, Weibo, bilibili, Xiaoyuzhou or Apple\n                          Podcasts link, or a bilibili id (BV…, av…, ep…,\n                          ss…).\n")
 		b.WriteString(flagHelp(infoFlags, hidden))
 	default:
-		b.WriteString("\nARGUMENTS:\n  <url>                   A YouTube, X, bilibili, Xiaoyuzhou or Apple Podcasts\n                          link, or a bilibili id (BV…, av…, ep…, ss…).\n")
+		b.WriteString("\nARGUMENTS:\n  <url>                   A YouTube, X, Weibo, bilibili, Xiaoyuzhou or Apple\n                          Podcasts link, or a bilibili id (BV…, av…, ep…,\n                          ss…).\n")
 		b.WriteString(flagHelp(downloadFlags, hidden))
 	}
 	return b.String()

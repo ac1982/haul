@@ -177,6 +177,7 @@ haul -q 720p -c avc,m4a "https://youtu.be/DdCEmlAydcw"  # QuickTime के ल�
 | --- | --- | --- |
 | **YouTube** | `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…` | yt-dlp, deno |
 | **X** | `x.com/<user>/status/<id>`, `twitter.com/…`; `/video/<n>` पोस्ट का एक वीडियो चुनता है | yt-dlp |
+| **Weibo** | `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…` | yt-dlp |
 | **bilibili** | वीडियो, bangumi, पाठ्यक्रम, संग्रह, सीरीज़, पसंदीदा, उपयोगकर्ता स्पेस, `b23.tv`, सीधे `BV…` `av…` `ep…` `ss…` `md…` | – |
 | **Xiaoyuzhou** | `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>` | – |
 | **Apple Podcasts** | `podcasts.apple.com/<cc>/podcast/<name>/id<show>`; एक एपिसोड के लिए `?i=<episode>` के साथ | – |

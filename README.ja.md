@@ -177,6 +177,7 @@ haul -q 720p -c avc,m4a "https://youtu.be/DdCEmlAydcw"  # QuickTime 向けに H.
 |---|---|---|
 | **YouTube** | `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…` | yt-dlp, deno |
 | **X** | `x.com/<user>/status/<id>`, `twitter.com/…`。`/video/<n>` で投稿内の動画をひとつ指定 | yt-dlp |
+| **Weibo** | `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…`, `t.cn/…` | yt-dlp |
 | **bilibili** | 動画、番組、講座、コレクション、シリーズ、お気に入り、ユーザーページ、`b23.tv`、ID の直接指定 `BV…` `av…` `ep…` `ss…` `md…` | – |
 | **Xiaoyuzhou** | `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>` | – |
 | **Apple Podcasts** | `podcasts.apple.com/<cc>/podcast/<name>/id<show>`。`?i=<episode>` を付けると単一エピソード | – |

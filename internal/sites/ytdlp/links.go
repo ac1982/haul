@@ -1,13 +1,16 @@
 package ytdlp
 
 import (
+	"context"
 	"net/url"
 	"regexp"
 	"slices"
 	"strings"
 
+	"github.com/ac1982/haul/internal/errs"
 	"github.com/ac1982/haul/internal/extract"
 	"github.com/ac1982/haul/internal/format"
+	"github.com/ac1982/haul/internal/httpx"
 	"github.com/ac1982/haul/internal/media"
 	"github.com/ac1982/haul/internal/shell"
 )
@@ -25,8 +28,10 @@ type profile struct {
 	trimEllipsis bool
 	// needsDeno: yt-dlp solves YouTube's player challenges in deno; without it most formats are missing.
 	needsDeno bool
-	policy    media.RangePolicy
-	maxRange  int64
+	// expand turns a short link into the site's own before yt-dlp sees it; nil leaves links as they are.
+	expand   func(ctx context.Context, client *httpx.Client, link string) (string, error)
+	policy   media.RangePolicy
+	maxRange int64
 }
 
 var youtubeProfile = profile{
@@ -72,6 +77,74 @@ var xProfile = profile{
 	},
 	trimEllipsis: true,
 	policy:       media.Parallel,
+}
+
+var weiboProfile = profile{
+	info: extract.Info{
+		Site:       "weibo",
+		Name:       "Weibo",
+		Links:      "weibo.com/<uid>/<id>, /tv/show/…, video.weibo.com/…, m.weibo.cn/…, t.cn/…",
+		Unit:       "video",
+		OwnerLabel: "by",
+		Requires:   []extract.Tool{{Name: "yt-dlp", Install: shell.InstallHint("yt-dlp")}},
+	},
+	match: func(link string) (string, bool) {
+		if u, host, path := components(link); host == "t.cn" && len(path) == 1 {
+			u.Scheme = "https"
+			return u.String(), true
+		}
+		return weiboLink(link)
+	},
+	expand: expandWeibo,
+	policy: media.Parallel,
+}
+
+var (
+	weiboPostID  = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+	weiboVideoID = regexp.MustCompile(`^\d+:(?:[0-9a-f]{32}|\d{16,})$`)
+)
+
+// weiboLink recognises the Weibo links yt-dlp reads: a post (weibo.com/<uid>/<id>, m.weibo.cn/status/<id> or
+// /detail/<id>) or a video page (weibo.com/tv/show/<fid>, video.weibo.com/show?fid=<fid>). It returns the link with
+// its scheme.
+func weiboLink(link string) (string, bool) {
+	u, host, path := components(link)
+	if u == nil {
+		return "", false
+	}
+	host = strings.TrimPrefix(host, "www.")
+	ok := false
+	switch host {
+	case "weibo.com":
+		ok = len(path) == 3 && path[0] == "tv" && path[1] == "show" && weiboVideoID.MatchString(path[2]) ||
+			len(path) == 2 && digits.MatchString(path[0]) && weiboPostID.MatchString(path[1])
+	case "video.weibo.com":
+		ok = len(path) == 1 && path[0] == "show" && weiboVideoID.MatchString(u.Query().Get("fid"))
+	case "m.weibo.cn":
+		ok = len(path) == 2 && (path[0] == "status" || path[0] == "detail") && weiboPostID.MatchString(path[1])
+	}
+	if !ok {
+		return "", false
+	}
+	u.Scheme = "https"
+	return u.String(), true
+}
+
+// expandWeibo follows a t.cn link one hop. Weibo's shortener points at the video page, which then sends anyone
+// without a session to a visitor wall that yt-dlp cannot read, so the hop is taken here and the rest left to yt-dlp.
+func expandWeibo(ctx context.Context, client *httpx.Client, link string) (string, error) {
+	if _, host, _ := components(link); host != "t.cn" {
+		return link, nil
+	}
+	target, err := client.Location(ctx, link, nil)
+	if err != nil {
+		return "", errs.New("Could not expand %s: %v", link, err)
+	}
+	expanded, ok := weiboLink(target)
+	if !ok {
+		return "", errs.NewInput("%s leads to %s, which is not a Weibo video", link, target)
+	}
+	return expanded, nil
 }
 
 var youtubeIDShape = regexp.MustCompile(`^[A-Za-z0-9_-]{11}$`)

@@ -146,6 +146,34 @@ func (c *Client) FinalURL(ctx context.Context, rawURL string, header http.Header
 	return resp.Request.URL.String(), nil
 }
 
+// Location GETs a link without following its redirect and returns where it points. Short links whose redirect
+// chain ends at a login wall (t.cn) are expanded one hop with it; a link that does not redirect is an error.
+func (c *Client) Location(ctx context.Context, rawURL string, header http.Header) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	if err != nil {
+		return "", errs.New("Invalid URL: %s", rawURL)
+	}
+	for k, v := range header {
+		req.Header[k] = v
+	}
+	console.Debugf("GET %s (one hop)", rawURL)
+	once := *c.HTTP
+	once.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+	resp, err := once.Do(req)
+	if err != nil {
+		return "", err
+	}
+	resp.Body.Close()
+	if resp.StatusCode < 300 || resp.StatusCode > 399 {
+		return "", &StatusError{Status: resp.StatusCode, URL: rawURL}
+	}
+	to, err := resp.Location()
+	if err != nil {
+		return "", errs.New("No redirect target: %s", rawURL)
+	}
+	return to.String(), nil
+}
+
 // FormEncode joins fields as a query, in order.
 func FormEncode(fields [][2]string) string {
 	parts := make([]string, len(fields))

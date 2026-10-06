@@ -79,3 +79,23 @@ func TestLiveX(t *testing.T) {
 		t.Errorf("want whole files with audio: %+v", f.Video)
 	}
 }
+
+func TestLiveWeibo(t *testing.T) {
+	requireLive(t)
+	w := NewWeibo(httpx.Default, Options{})
+	link, ok := w.Match("http://t.cn/AXWYBa43")
+	if !ok {
+		t.Fatal("no match")
+	}
+	item, err := w.Resolve(context.Background(), link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if item.Site != "weibo" || len(item.Entries) != 1 || item.Title == "" {
+		t.Fatalf("item = %+v", item)
+	}
+	f := item.Entries[0].Formats
+	if len(f.Video) == 0 || !f.Video[0].HasAudio || slices.ContainsFunc(f.Video, func(v media.VideoFormat) bool { return v.Quality == "" }) {
+		t.Errorf("want whole MP4 files with audio: %+v", f.Video)
+	}
+}

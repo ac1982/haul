@@ -11,10 +11,13 @@ import (
 	"github.com/ac1982/haul/internal/media"
 )
 
+// imageExt are the extensions of formats that are pictures, not streams.
+var imageExt = map[string]bool{"jpg": true, "jpeg": true, "png": true, "webp": true, "gif": true}
+
 // streams picks the formats haul can download: DASH video and audio when the site has them (YouTube), otherwise
 // whole files with the audio inside (X). It also returns the headers yt-dlp says the streams need; the first
-// non-empty set applies to all of them.
-func streams(list jsonv.Value, p *profile) (*media.Formats, http.Header, error) {
+// non-empty set applies to all of them. duration (seconds, 0 unknown) checks the bitrates yt-dlp reports.
+func streams(list jsonv.Value, duration float64, p *profile) (*media.Formats, http.Header, error) {
 	type audioCandidate struct {
 		format     media.AudioFormat
 		preference int
@@ -30,8 +33,10 @@ func streams(list jsonv.Value, p *profile) (*media.Formats, http.Header, error) 
 		proto, _ := f.Get("protocol").Str()
 		drm, _ := f.Get("has_drm").Bool()
 		id := f.Get("format_id").String()
-		// Plain HTTPS only: no HLS, storyboards, DRC (dynamic range compressed audio) or DRM variants.
-		if proto != "https" || url == "" || drm || strings.Contains(id, "drc") {
+		ext, _ := f.Get("ext").Str()
+		// Plain HTTPS only: no HLS, storyboards, preview images (Weibo's scrubber), DRC (dynamic range compressed
+		// audio) or DRM variants.
+		if proto != "https" || url == "" || drm || strings.Contains(id, "drc") || imageExt[ext] {
 			continue
 		}
 		vcodec, hasVcodec := f.Get("vcodec").Str()
@@ -44,7 +49,7 @@ func streams(list jsonv.Value, p *profile) (*media.Formats, http.Header, error) 
 				format: media.AudioFormat{
 					ID:      id,
 					Codec:   audioCodec(acodec),
-					Bitrate: rounded(f, "abr", "tbr"),
+					Bitrate: bitrate(rounded(f, "abr", "tbr"), size, duration),
 					Size:    size,
 					Source:  p.resource(url, size),
 				},
@@ -56,6 +61,7 @@ func streams(list jsonv.Value, p *profile) (*media.Formats, http.Header, error) 
 				codec = videoCodec(vcodec)
 			}
 			v := videoFormat(f, id, url, codec, size, p)
+			v.Bitrate = bitrate(v.Bitrate, size, duration)
 			if acodec == "none" {
 				video = append(video, v)
 			} else {
@@ -121,6 +127,19 @@ func videoFormat(f jsonv.Value, id, url, codec string, size int64, p *profile) m
 // resource is a stream as the site's CDN wants it fetched. yt-dlp's filesize is exact, so it is trusted.
 func (p *profile) resource(url string, size int64) media.Resource {
 	return media.Resource{URL: url, Size: size, Policy: p.policy, MaxRange: p.maxRange}
+}
+
+// bitrate is the reported kbps unless the file's size and duration contradict it by far: yt-dlp's Weibo extractor
+// gives bit/s for kbit/s. The measured rate is then the better guess.
+func bitrate(reported, size int64, duration float64) int64 {
+	if size <= 0 || duration <= 0 {
+		return reported
+	}
+	measured := int64(math.Round(float64(size) * 8 / duration / 1000))
+	if measured > 0 && reported > 100*measured {
+		return measured
+	}
+	return reported
 }
 
 // rounded is the first of the keys that is a number, rounded to a whole kbps.

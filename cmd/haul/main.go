@@ -1,5 +1,5 @@
-// Command haul downloads video and audio from YouTube, X, bilibili, Xiaoyuzhou and Apple Podcasts, for people and
-// for AI agents: --json prints one JSON document on stdout, it never prompts without a terminal, and exit codes
+// Command haul downloads video and audio from YouTube, X, Weibo, bilibili, Xiaoyuzhou and Apple Podcasts, for people
+// and for AI agents: --json prints one JSON document on stdout, it never prompts without a terminal, and exit codes
 // say what went wrong.
 package main
 

@@ -193,6 +193,7 @@ func newRouter(fs *pflag.FlagSet, o engine.Options) (*extract.Router, error) {
 	return extract.NewRouter(
 		ytdlp.NewYouTube(client, y),
 		ytdlp.NewX(client, y),
+		ytdlp.NewWeibo(client, y),
 		bilibili.New(client, b),
 		podcast.NewXiaoyuzhou(client),
 		podcast.NewApple(client),

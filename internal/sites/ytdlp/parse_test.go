@@ -232,6 +232,20 @@ func TestProgressiveOnlyWithoutDASH(t *testing.T) {
 	}
 }
 
+func TestPreviewImagesAreNotStreams(t *testing.T) {
+	t.Parallel()
+	// Weibo lists its scrubber picture among the formats, with a size and codecs it does not know.
+	const post = `{"id": "5349877815182160", "duration": 2944, "formats": [
+		{"format_id": "scrubber_hd", "ext": "jpg", "protocol": "https", "url": "p", "vcodec": "unknown", "acodec": "unknown", "width": 320, "height": 180},
+		{"format_id": "mp4_720p", "ext": "mp4", "protocol": "https", "url": "v", "vcodec": "avc1.64001f", "acodec": "mp4a.40.5", "width": 1280, "height": 720,
+		 "filesize": 196545765, "tbr": 534062}]}`
+	v := mustParse(t, post, &weiboProfile).Entries[0].Formats.Video
+	// Its bitrates are bit/s; size and duration put them right.
+	if len(v) != 1 || v[0].ID != "mp4_720p" || !v[0].HasAudio || v[0].Source.Policy != media.Parallel || v[0].Bitrate != 534 {
+		t.Errorf("video = %+v", v)
+	}
+}
+
 func TestNoDownloadableStreamsIsAnError(t *testing.T) {
 	t.Parallel()
 	for _, text := range []string{
