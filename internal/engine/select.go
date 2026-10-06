@@ -98,6 +98,7 @@ func (o Options) SortVideo(in []media.VideoFormat) []media.VideoFormat {
 // SortAudioSource orders video streams for an audio-only file that has to be taken out of one: the -q priorities,
 // then the best audio, then the smallest file, so the audio comes with as little video as possible. Streams without
 // audio come last. --audio-ascending puts the smallest audio first.
+// Known sizes precede unknown sizes; bitrate and then resolution break ties or supply missing size information.
 func (o Options) SortAudioSource(in []media.VideoFormat) []media.VideoFormat {
 	q := priorities(o.Quality)
 	out := slices.Clone(in)
@@ -107,7 +108,9 @@ func (o Options) SortAudioSource(in []media.VideoFormat) []media.VideoFormat {
 	}
 	slices.SortStableFunc(out, func(a, b media.VideoFormat) int {
 		return cmp.Or(compareBool(b.HasAudio, a.HasAudio), cmp.Compare(rank(q, a.Quality), rank(q, b.Quality)),
-			sign*cmp.Compare(a.AudioBitrate, b.AudioBitrate), cmp.Compare(a.Rank, b.Rank), cmp.Compare(a.Bitrate, b.Bitrate))
+			sign*cmp.Compare(a.AudioBitrate, b.AudioBitrate),
+			compareBool(a.Size <= 0, b.Size <= 0), cmp.Compare(a.Size, b.Size),
+			compareBool(a.Bitrate <= 0, b.Bitrate <= 0), cmp.Compare(a.Bitrate, b.Bitrate), cmp.Compare(a.Rank, b.Rank))
 	})
 	return out
 }

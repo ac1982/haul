@@ -179,3 +179,29 @@ func TestSortAudioSource(t *testing.T) {
 		t.Errorf("unknown audio = %s", got)
 	}
 }
+
+func TestSortAudioSourceSize(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		small, large media.VideoFormat
+	}{
+		{"size before resolution", media.VideoFormat{Rank: 1080, Size: 100}, media.VideoFormat{Rank: 720, Size: 200}},
+		{"size before bitrate", media.VideoFormat{Size: 100, Bitrate: 2000}, media.VideoFormat{Size: 200, Bitrate: 1000}},
+		{"unknown size last", media.VideoFormat{Size: 100}, media.VideoFormat{Bitrate: 1}},
+		{"bitrate before resolution", media.VideoFormat{Rank: 1080, Bitrate: 1000}, media.VideoFormat{Rank: 720, Bitrate: 2000}},
+		{"unknown bitrate last", media.VideoFormat{Rank: 1080, Bitrate: 1000}, media.VideoFormat{Rank: 720}},
+		{"resolution fallback", media.VideoFormat{Rank: 720}, media.VideoFormat{Rank: 1080}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a, b := tc.small, tc.large
+			a.ID, b.ID = "small", "large"
+			a.HasAudio, b.HasAudio = true, true
+			a.AudioBitrate, b.AudioBitrate = 128, 128
+			for _, in := range [][]media.VideoFormat{{a, b}, {b, a}} {
+				if got := DefaultOptions().SortAudioSource(in)[0].ID; got != "small" {
+					t.Errorf("first = %s; want small", got)
+				}
+			}
+		})
+	}
+}
