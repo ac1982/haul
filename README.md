@@ -316,14 +316,14 @@ YouTube protects its stream URLs with player challenges that need a JavaScript r
 <details>
 <summary><strong>X</strong> · public posts and audio</summary>
 
-X needs no login for public posts. Its videos are single MP4 files with the audio inside, so the table lists video only; `--audio-only` extracts the audio.
+X needs no login for public posts. Its videos are single MP4 files with the audio inside, so the table lists video only; `--audio-only` extracts the audio. The qualities carry different audio, so for `--audio-only` haul first measures each one's audio with ffmpeg and downloads the smallest file with the best audio; the table then shows it as `audio 128 kbps`.
 
 </details>
 
 <details>
 <summary><strong>Weibo</strong> · public videos and t.cn links</summary>
 
-Weibo needs no login for public videos. Like X, its videos are single MP4 files with the audio inside. A `t.cn` short link is expanded by haul before yt-dlp reads the video; one that leads somewhere other than a Weibo video is an input error naming where it goes.
+Weibo needs no login for public videos. Like X, its videos are single MP4 files with the audio inside, and `--audio-only` picks the smallest one with the best audio (usually 720p: 480p has 48 kbps audio, 720p and 1080p 128 kbps). A `t.cn` short link is expanded by haul before yt-dlp reads the video; one that leads somewhere other than a Weibo video is an input error naming where it goes.
 
 </details>
 

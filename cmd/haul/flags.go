@@ -57,7 +57,9 @@ var downloadFlags = []flagDef{
 	{name: "show-all", kind: boolFlag, group: "Pages", help: "List every page and every stream instead of a summary."},
 	{name: "hide-streams", kind: boolFlag, group: "Pages", help: "Do not print the stream table."},
 
-	{name: "audio-only", kind: boolFlag, group: "Content", help: "Audio only, as .m4a.", detail: "The best audio stream, which may be Opus; -c m4a gets AAC. Podcasts keep .mp3 / .m4a."},
+	{name: "audio-only", kind: boolFlag, group: "Content", help: "Audio only, as .m4a.", detail: "The best audio stream, which may be Opus; -c m4a gets AAC. Podcasts keep .mp3 / .m4a. " +
+		"Where the audio is inside the video (X, Weibo), haul measures it with ffmpeg and takes the video with the " +
+		"best audio and the smallest file; -q or --video-stream choose another."},
 	{name: "video-only", kind: boolFlag, group: "Content", help: "Video only, no audio."},
 	{name: "subtitle-only", kind: boolFlag, group: "Content", help: "Only the subtitles, as .srt files next to where the video would be."},
 	{name: "cover-only", kind: boolFlag, group: "Content", help: "Only the cover image."},
@@ -95,7 +97,7 @@ var downloadFlags = []flagDef{
 	{name: "area", kind: stringFlag, value: "<area>", group: "bilibili", config: "bilibili.area", hidden: true, help: "Proxy area: hk, tw or th."},
 
 	{name: "ffmpeg", kind: stringFlag, value: "<path>", group: "Tools", help: "ffmpeg to use. Default: from PATH."},
-	{name: "yt-dlp", kind: stringFlag, value: "<path>", group: "Tools", config: "ytDlp", help: "yt-dlp to use (YouTube, X). Default: from PATH."},
+	{name: "yt-dlp", kind: stringFlag, value: "<path>", group: "Tools", config: "ytDlp", help: "yt-dlp to use (YouTube, X, Weibo). Default: from PATH."},
 	{name: "use-mp4box", kind: boolFlag, group: "Tools", help: "Mux with MP4Box instead of ffmpeg."},
 	{name: "mp4box", kind: stringFlag, value: "<path>", group: "Tools", help: "MP4Box to use."},
 	{name: "use-aria2c", kind: boolFlag, group: "Tools", help: "Download with aria2c."},

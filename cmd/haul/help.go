@@ -59,9 +59,10 @@ FOR SCRIPTS AND AI AGENTS
   With --json, stdout carries only that document; progress and logs
   go to stderr. haul never prompts without a terminal: choose streams
   with --video-stream N / --audio-stream N (indexes from info, with
-  the same -q / -c), or let -q / -c decide. Re-runs skip files that
-  exist. A list saves into a folder named after it: read the path
-  from the JSON, do not build it.
+  the same -q / -c / --audio-only), or let -q / -c decide. Re-runs
+  skip files that exist. A list saves into a folder named after it:
+  read the path from the JSON, do not build it.
+  Full guide for agents: https://github.com/ac1982/haul/blob/main/llms.txt
 
 EXIT CODES
   0 done              1 download failed    2 bad link or option

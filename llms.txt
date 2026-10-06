@@ -18,13 +18,13 @@ haul --json -w ~/Downloads "<url>" 2>/dev/null | jq -r 'if .ok then .files[] els
 
 - Quote URLs: they contain `?` and `&`.
 - Never pass `-i` / `--interactive`: it needs a terminal and fails with exit code 2 without one.
-- Stream indexes are 0-based and follow haul's sort order, which `-q`, `-c`, `--video-ascending` and `--audio-ascending` change. Pass the same ordering flags to `info` and to the download, or use indexes from a plain `info` with no ordering flags at all.
+- Stream indexes are 0-based and follow haul's sort order, which `-q`, `-c`, `--video-ascending`, `--audio-ascending` and `--audio-only` change. Pass the same ordering flags to `info` and to the download, or use indexes from a plain `info` with no ordering flags at all.
 - Pages are 1-based, as `info` numbers them. `-p` takes `3`, `1-5`, `1,4`, `ALL`, `LAST`. `LAST` (also `LATEST`) is the last page, which is the newest episode of a podcast show (shows are listed oldest first). Without `-p`, a link to one episode or `?p=N` takes that page; otherwise a download takes all pages.
 - Where files go: the current directory, or `-w <dir>`. An item with one page is saved as `<title>.<ext>`. An item with several pages is saved in a folder named after it, as `<title>/[P<n>]<pageTitle>.<ext>`, even when `-p` picks one page; `<n>` is zero-padded to the page count (`P003` of 155). Change this with `-o` (one page) and `--multi-output` (several); `haul templates` lists the variables. Don't include an extension; haul adds it.
 - By default the output file, audio-only files included, also contains the subtitles (not auto-generated ones), chapters, the cover (as an attached picture, which ffprobe shows as a `video` stream) and tags. `--skip-subtitle` and `--skip-cover` leave them out, for example for a pure audio file. `--sub-lang en,zh` keeps only those languages; a prefix matches (`zh` takes `zh-CN`, `en` takes `en-US`). `--auto-subtitles` adds machine-generated ones (for some bilibili videos they are the only subtitles there are). Inside the file, languages are tagged with ISO 639-2 codes (`chi`, `eng`).
 - Re-running is safe. A page whose output file exists is reported as `"status": "skipped", "reason": "exists"` and is not downloaded again.
-- Smallest download: `--video-ascending --audio-ascending` (lowest quality and smallest streams first; each flag orders one kind). `-q 360P` alone still takes the best audio.
-- Audio only: `--audio-only` gives `.m4a` with the best audio stream, which may be Opus. Add `-c m4a` to prefer AAC. Podcasts keep `.mp3` / `.m4a`.
+- Smallest download: `--video-ascending --audio-ascending` (lowest quality and smallest streams first; each flag orders one kind). Where audio is a separate stream (YouTube, bilibili), `-q 360P` alone still takes the best audio. Where it is inside the video file (X, Weibo, `videoHasAudio: true`), a lower quality usually means worse audio too.
+- Audio only: `--audio-only` gives `.m4a` with the best audio stream, which may be Opus. Add `-c m4a` to prefer AAC. Podcasts keep `.mp3` / `.m4a`. Where the audio is inside the video file (X, Weibo), there is no audio stream to take: haul downloads one video file and copies its audio out. It first measures each video's audio with ffmpeg (`audioBitrateKbps`) and takes the best audio in the smallest file, so it does not fetch 1080p for audio that 720p has too. Run `haul info --json --audio-only "<url>"` to see the measurements and the order; `-q` or `--video-stream` override the choice.
 - `-q` and `-c` are priorities, not filters: when nothing matches, haul takes the next best. Check what was used: `video[selectedVideo]` and `audio[selectedAudio]`.
 - Subtitles only: `--subtitle-only` writes `<name>.<lang>.srt` files (`<name>.<lang>.auto.srt` for machine-generated ones). They appear in `extraFiles` and `files`; `file` is absent. When there is nothing to save, the page is `"status": "skipped", "reason": "empty"`. Cover only: `--cover-only`.
 - bilibili danmaku: `--danmaku` adds them next to the video, `--danmaku-only` writes only them; `--danmaku-format ass` (or `xml`) limits the files, default both.
@@ -48,7 +48,7 @@ On failure, stdout still has one JSON document: `"ok": false` and `"error": {"ki
 
 - **YouTube**: `youtube.com/watch?v=…`, `youtu.be/…`, `/shorts/…`, `/embed/…`, `/live/…`. Needs yt-dlp and deno. Qualities `1080p`, `720p60`… Video codecs `AV1`, `VP9`, `AVC`; audio `M4A` (AAC), `OPUS`. `-c avc,m4a` gives files that QuickTime plays.
 - **X**: `x.com/<user>/status/<id>` or `twitter.com/…`; `…/video/<n>` takes one video of a post. Needs yt-dlp. Each video stream already includes the audio (`videoHasAudio: true`, `hasAudio: true`, no `audio`); the codec may show as `MP4`. A post with several videos has one page per video.
-- **Weibo**: `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…` or `/detail/…`, and `t.cn/…` short links. Needs yt-dlp. Like X, each video stream includes the audio.
+- **Weibo**: `weibo.com/<uid>/<id>`, `weibo.com/tv/show/…`, `video.weibo.com/show?fid=…`, `m.weibo.cn/status/…` or `/detail/…`, and `t.cn/…` short links. Needs yt-dlp. Like X, each video stream includes the audio, and the qualities carry different audio (often 48 kbps at 480p, 128 kbps from 720p). A `t.cn` link is expanded first; one that leads to anything but a Weibo video fails with `input` (exit code 2) and a message naming where it leads.
 - **bilibili**: `bilibili.com/video/BV…`, bangumi, courses, collections, favorites, user spaces, `b23.tv/…`, or a bare `BV…` / `av…` / `ep…` / `ss…`. Logged out, it offers only lower qualities, typically up to 480P (`"loggedIn": false`); 1080P and above need `haul login bilibili`. Qualities `8K`, `Dolby Vision`, `HDR`, `4K`, `1080P60`, `1080P+`, `1080P`, `720P`, `480P`, `360P`. Codecs `AV1`, `HEVC`, `AVC`. `--danmaku` saves the bullet comments.
 - **Xiaoyuzhou**: `xiaoyuzhoufm.com/episode/<id>`, `/podcast/<id>`. A show page lists only its latest episodes.
 - **Apple Podcasts**: `podcasts.apple.com/<cc>/podcast/<name>/id<show>?i=<episode>`, or without `?i=` for the whole show. Apple returns only a show's recent episodes, so `pageCount` can be well below the real total; download older episodes by their episode link.
@@ -73,7 +73,8 @@ pages[]: {                      every page of the item, selected or not
   status?: "listed" | "downloaded" | "skipped"      absent on pages the run did not take
   reason?: "exists" | "archive" | "no-mux" | "empty"
   file? (absolute), sizeBytes?, extraFiles? (absolute: subtitles, danmaku, a cover, unmuxed streams)
-  video?: [{ index (0-based), quality?, resolution?, codec, fps?, bitrateKbps?, sizeBytes?, hasAudio?, url? }]
+  video?: [{ index (0-based), quality?, resolution?, codec, fps?, bitrateKbps?, sizeBytes?, hasAudio?,
+             audioBitrateKbps? (the audio inside it; measured with --audio-only on X and Weibo), url? }]
   audio?: [{ index (0-based), codec, bitrateKbps?, sizeBytes?, url? }]
   videoHasAudio?, selectedVideo?, selectedAudio?
   subtitles?: [{ lang (BCP 47, e.g. en, zh-CN), auto? }]
