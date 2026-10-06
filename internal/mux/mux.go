@@ -5,6 +5,7 @@ package mux
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -273,4 +274,46 @@ func SupportsDolbyVision(ctx context.Context, ffmpeg string) bool {
 	major, _ := strconv.Atoi(m[1])
 	minor, _ := strconv.Atoi(m[2])
 	return major > 57 || major == 57 && minor >= 17
+}
+
+// audioBitrate is the first audio stream's rate in ffmpeg's description of an input:
+// `Stream #0:1[0x2](und): Audio: aac (HE-AAC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)`.
+var audioBitrate = regexp.MustCompile(`(?m)^\s*Stream #\d+:\d+.*: Audio: .*?(\d+) kb/s`)
+
+// ProbeAudioBitrate reads only the head of a remote file with ffmpeg and returns the kbps of its audio, or 0 when
+// ffmpeg does not say. header is sent with the request, as the download would send it.
+func ProbeAudioBitrate(ctx context.Context, ffmpeg, url string, header http.Header) (int64, error) {
+	// -rw_timeout (µs) gives up on a stalled connection instead of waiting for ctx.
+	args := []string{"-hide_banner", "-nostdin", "-rw_timeout", "10000000"}
+	var lines strings.Builder
+	for k, vs := range header {
+		for _, v := range vs {
+			if strings.EqualFold(k, "User-Agent") {
+				args = append(args, "-user_agent", v)
+			} else {
+				fmt.Fprintf(&lines, "%s: %s\r\n", k, v)
+			}
+		}
+	}
+	if lines.Len() > 0 {
+		args = append(args, "-headers", lines.String())
+	}
+	args = append(args, "-i", url)
+	console.Debugf("ffmpeg -hide_banner -nostdin … -i %s", url)
+	// Without an output ffmpeg describes the input and exits non-zero; the description is all that is wanted.
+	res, err := shell.Run(ctx, ffmpeg, args, shell.Options{Capture: true})
+	if err != nil {
+		return 0, err
+	}
+	return ParseAudioBitrate(res.Errors), nil
+}
+
+// ParseAudioBitrate finds the audio rate in ffmpeg's input description; 0 when there is none.
+func ParseAudioBitrate(description string) int64 {
+	m := audioBitrate.FindStringSubmatch(description)
+	if m == nil {
+		return 0
+	}
+	n, _ := strconv.ParseInt(m[1], 10, 64)
+	return n
 }

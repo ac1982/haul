@@ -1,7 +1,10 @@
 package mux
 
 import (
+	"bytes"
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -197,5 +200,40 @@ func TestFailedMuxIsAnError(t *testing.T) {
 	job := Job{Video: filepath.Join(dir, "missing.mp4"), Container: MP4, Output: filepath.Join(dir, "o.mp4")}
 	if err := (FFmpeg{Path: testkit.FFmpeg}).Mux(context.Background(), job); err == nil || !strings.Contains(err.Error(), "exit code") {
 		t.Errorf("err = %v", err)
+	}
+}
+
+func TestParseAudioBitrate(t *testing.T) {
+	const description = `Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'https://f.video.weibocdn.com/o0/x.mp4':
+  Duration: 00:49:04.08, start: 0.000000, bitrate: 534 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1280x720, 402 kb/s, 24 fps (default)
+  Stream #0:1[0x2](und): Audio: aac (HE-AAC) (mp4a / 0x6134706D), 44100 Hz, stereo, fltp, 128 kb/s (default)
+At least one output file must be specified`
+	if got := ParseAudioBitrate(description); got != 128 {
+		t.Errorf("ParseAudioBitrate = %d", got)
+	}
+	if got := ParseAudioBitrate("  Stream #0:0: Video: h264, 402 kb/s\n"); got != 0 {
+		t.Errorf("without audio = %d", got)
+	}
+}
+
+func TestProbeAudioBitrate(t *testing.T) {
+	m := testkit.MakeMedia(t)
+	// ffmpeg fetches the stream itself, so it needs a real (local) server; it must send the stream's headers.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Referer") != "https://site.test/" || r.UserAgent() != "UA-Test" {
+			http.Error(w, "headers missing", http.StatusForbidden)
+			return
+		}
+		http.ServeContent(w, r, "av.mp4", time.Time{}, bytes.NewReader(m.Combined))
+	}))
+	defer srv.Close()
+	header := http.Header{"Referer": {"https://site.test/"}, "User-Agent": {"UA-Test"}}
+	kbps, err := ProbeAudioBitrate(context.Background(), testkit.FFmpeg, srv.URL+"/av.mp4", header)
+	if err != nil || kbps <= 0 {
+		t.Errorf("ProbeAudioBitrate = %d, %v", kbps, err)
+	}
+	if kbps, err := ProbeAudioBitrate(context.Background(), testkit.FFmpeg, srv.URL+"/av.mp4", nil); err != nil || kbps != 0 {
+		t.Errorf("without the headers = %d, %v", kbps, err)
 	}
 }

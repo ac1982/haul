@@ -149,3 +149,33 @@ func TestTags(t *testing.T) {
 		t.Errorf("podcast: %+v", got)
 	}
 }
+
+func TestSortAudioSource(t *testing.T) {
+	v := func(id string, rank int, audio int64, hasAudio bool) media.VideoFormat {
+		return media.VideoFormat{ID: id, Quality: id, Rank: rank, AudioBitrate: audio, HasAudio: hasAudio}
+	}
+	in := []media.VideoFormat{v("1080p", 1080, 128, true), v("silent", 2160, 0, false), v("720p", 720, 128, true), v("480p", 480, 48, true)}
+	ids := func(o Options) string {
+		var out []string
+		for _, f := range o.SortAudioSource(in) {
+			out = append(out, f.ID)
+		}
+		return strings.Join(out, " ")
+	}
+	// The best audio in the smallest file; a stream without audio last.
+	if got := ids(DefaultOptions()); got != "720p 1080p 480p silent" {
+		t.Errorf("default = %s", got)
+	}
+	if got := ids(Options{AudioAscending: true}); got != "480p 720p 1080p silent" {
+		t.Errorf("ascending = %s", got)
+	}
+	// -q still comes first.
+	if got := ids(Options{Quality: []string{"480p"}}); got != "480p 720p 1080p silent" {
+		t.Errorf("-q 480p = %s", got)
+	}
+	// Unknown audio: the smallest file.
+	in = []media.VideoFormat{v("1080p", 1080, 0, true), v("480p", 480, 0, true)}
+	if got := ids(DefaultOptions()); got != "480p 1080p" {
+		t.Errorf("unknown audio = %s", got)
+	}
+}

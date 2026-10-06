@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ac1982/haul/internal/console"
@@ -186,6 +187,7 @@ func (e *Engine) entry(ctx context.Context, x extract.Extractor, item *media.Ite
 	if formats.Raw != "" {
 		console.Debugf("Formats: %s", formats.Raw)
 	}
+	e.measureAudio(ctx, formats)
 	if err := e.choose(entry, formats, r); err != nil {
 		return err
 	}
@@ -210,6 +212,9 @@ func (e *Engine) choose(entry *media.Entry, f *media.Formats, r *EntryResult) er
 		video = nil
 	}
 	r.Video, r.Audio = o.SortVideo(video), o.SortAudio(f.Audio)
+	if audioFromVideo(o, f) {
+		r.Video = o.SortAudioSource(video)
+	}
 	r.VideoHasAudio = len(r.Audio) == 0 && len(r.Video) > 0 && r.Video[0].HasAudio
 	r.Subtitles = o.filterSubtitles(f.Subtitles, o.List)
 	if r.ChosenVideo >= 0 || r.ChosenAudio >= 0 {
@@ -230,6 +235,49 @@ func (e *Engine) choose(entry *media.Entry, f *media.Formats, r *EntryResult) er
 		r.ChosenVideo, r.ChosenAudio = v, a
 	}
 	return nil
+}
+
+// audioFromVideo: an audio-only file that has to be taken out of a video stream, as the site has no audio streams.
+func audioFromVideo(o Options, f *media.Formats) bool {
+	return o.Content.Tracks == AudioOnly && len(f.Audio) == 0 && !f.AudioOnly
+}
+
+// probeTimeout bounds reading one stream's head.
+const probeTimeout = 20 * time.Second
+
+// measureAudio finds the audio bitrate inside each video stream when an audio-only file has to come from one and
+// the site did not say: the qualities of one video often carry different audio (48 kbps at 480p, 128 kbps from
+// 720p), and the best audio in the smallest file is the one to take. ffmpeg reads only the head of each stream.
+// A stream it cannot read stays unknown; the choice then falls back to the order without it.
+func (e *Engine) measureAudio(ctx context.Context, f *media.Formats) {
+	if !audioFromVideo(e.Options, f) || e.Options.VideoIndex >= 0 || e.FFmpeg == "" {
+		return
+	}
+	var todo []*media.VideoFormat
+	for i := range f.Video {
+		v := &f.Video[i]
+		if v.HasAudio && v.AudioBitrate == 0 && v.Source.URL != "" && len(v.Parts) == 0 {
+			todo = append(todo, v)
+		}
+	}
+	if len(todo) < 2 {
+		return
+	}
+	console.Status(fmt.Sprintf("Measuring the audio in %d video streams", len(todo)))
+	var wg sync.WaitGroup
+	for _, v := range todo {
+		wg.Go(func() {
+			pctx, cancel := context.WithTimeout(ctx, probeTimeout)
+			defer cancel()
+			kbps, err := mux.ProbeAudioBitrate(pctx, e.FFmpeg, v.Source.URL, v.Source.Header)
+			if err != nil {
+				console.Debugf("Measuring the audio of %s: %v", v.ID, err)
+				return
+			}
+			v.AudioBitrate = kbps
+		})
+	}
+	wg.Wait()
 }
 
 // plan is where an entry's output goes and what it is made of.

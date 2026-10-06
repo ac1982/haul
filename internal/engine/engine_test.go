@@ -277,6 +277,46 @@ func TestVideoWithAudioInside(t *testing.T) {
 	}
 }
 
+func TestAudioOnlyTakesTheBestAudioInTheSmallestVideo(t *testing.T) {
+	m := testkit.MakeMedia(t)
+	f := newFixture(t)
+	item := f.post(1, m)
+	video := func(id string, rank int, audio int64) media.VideoFormat {
+		return media.VideoFormat{ID: id, Rank: rank, Quality: id, Codec: "AVC", HasAudio: true, AudioBitrate: audio,
+			Source: media.Resource{URL: "https://x.test/vid/" + id + ".mp4"}}
+	}
+	formats := item.Entries[0].Formats
+	formats.Video = []media.VideoFormat{video("1080p", 1080, 128), video("720p", 720, 128), video("480p", 480, 48)}
+	f.site.items["post"] = item
+	res, err := f.run("test:post", func(o *Options) { o.Content.Tracks = AudioOnly })
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := res.Entries[0]
+	eq(t, "chosen", r.Video[r.ChosenVideo].ID, "720p")
+	eq(t, "requests", len(f.stub.Requests("vid/720p")) > 0 && len(f.stub.Requests("vid/1080p")) == 0, true)
+
+	// --video-stream is taken as it is, in the same order info shows.
+	res, err = f.run("test:post", func(o *Options) { o.Content.Tracks = AudioOnly; o.List = true; o.VideoIndex = 2 })
+	if err != nil {
+		t.Fatal(err)
+	}
+	r = res.Entries[0]
+	eq(t, "--video-stream 2", r.Video[r.ChosenVideo].ID, "480p")
+
+	// Audio ffmpeg cannot measure (nothing listens there) stays unknown: the smallest file is taken.
+	for i := range formats.Video {
+		formats.Video[i].AudioBitrate = 0
+		formats.Video[i].Source.URL = "http://127.0.0.1:1/" + formats.Video[i].ID + ".mp4"
+	}
+	res, err = f.run("test:post", func(o *Options) { o.Content.Tracks = AudioOnly; o.List = true })
+	if err != nil {
+		t.Fatal(err)
+	}
+	r = res.Entries[0]
+	eq(t, "unmeasured", r.Video[r.ChosenVideo].ID, "480p")
+}
+
 func TestSeveralEntriesGoInAFolder(t *testing.T) {
 	m := testkit.MakeMedia(t)
 	f := newFixture(t)

@@ -120,6 +120,8 @@ func Streams(video []media.VideoFormat, audio []media.AudioFormat, videoHasAudio
 		var rows []row
 		var hidden []string
 		hiddenCount := 0
+		// The audio inside each video stream, once measured for an audio-only file.
+		audioColumn := slices.ContainsFunc(video, func(v media.VideoFormat) bool { return v.AudioBitrate > 0 })
 		for i, v := range video {
 			if keep != "" && v.Codec != keep {
 				hiddenCount++
@@ -128,10 +130,14 @@ func Streams(video []media.VideoFormat, audio []media.AudioFormat, videoHasAudio
 				}
 				continue
 			}
-			rows = append(rows, row{index: i, url: sourceURL(v.Source, v.Parts), cells: []string{v.Quality, Resolution(v.Width, v.Height), v.Codec,
-				FPS(v.FPS), kbps(v.Bitrate), size(media.EstimatedSize(v.Size, v.Bitrate, duration))}})
+			cells := []string{v.Quality, Resolution(v.Width, v.Height), v.Codec, FPS(v.FPS), kbps(v.Bitrate),
+				size(media.EstimatedSize(v.Size, v.Bitrate, duration))}
+			if audioColumn {
+				cells = append(cells, "audio "+kbps(v.AudioBitrate))
+			}
+			rows = append(rows, row{index: i, url: sourceURL(v.Source, v.Parts), cells: cells})
 		}
-		out = append(out, table(rows, chosenVideo, map[int]bool{4: true, 5: true}, urls, s)...)
+		out = append(out, table(rows, chosenVideo, map[int]bool{4: true, 5: true, 6: true}, urls, s)...)
 		if hiddenCount > 0 {
 			slices.Sort(hidden)
 			out = append(out, indent+"  "+s.Dim(fmt.Sprintf("…  %d more %s streams (-i or --show-all lists them)", hiddenCount, strings.Join(hidden, " / "))))

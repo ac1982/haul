@@ -99,7 +99,9 @@ type VideoFormat struct {
 	Bitrate  int64 // kbps
 	Size     int64 // bytes as the site states or estimates them; 0 when unknown
 	HasAudio bool
-	Source   Resource
+	// AudioBitrate is the kbps of the audio inside (HasAudio), when known; sites rarely say, the engine may measure it.
+	AudioBitrate int64
+	Source       Resource
 	// Parts, instead of Source: segments downloaded one after the other and joined (bilibili FLV).
 	Parts []Resource
 }

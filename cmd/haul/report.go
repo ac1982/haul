@@ -64,7 +64,9 @@ type jsonVideo struct {
 	BitrateKbps int64   `json:"bitrateKbps,omitempty"`
 	SizeBytes   int64   `json:"sizeBytes,omitempty"`
 	HasAudio    bool    `json:"hasAudio,omitempty"`
-	URL         string  `json:"url,omitempty"`
+	// AudioBitrateKbps is the audio inside the video stream, when known (measured for --audio-only).
+	AudioBitrateKbps int64  `json:"audioBitrateKbps,omitempty"`
+	URL              string `json:"url,omitempty"`
 }
 
 type jsonAudio struct {
@@ -122,7 +124,7 @@ func page(r *engine.EntryResult, urls bool) jsonPage {
 	}
 	for i, v := range r.Video {
 		jv := jsonVideo{Index: i, Quality: v.Quality, Codec: v.Codec, FPS: math.Round(v.FPS*1000) / 1000, BitrateKbps: v.Bitrate,
-			SizeBytes: media.EstimatedSize(v.Size, v.Bitrate, e.Duration), HasAudio: v.HasAudio}
+			SizeBytes: media.EstimatedSize(v.Size, v.Bitrate, e.Duration), HasAudio: v.HasAudio, AudioBitrateKbps: v.AudioBitrate}
 		if v.Width > 0 {
 			jv.Resolution = fmt.Sprintf("%dx%d", v.Width, v.Height)
 		}

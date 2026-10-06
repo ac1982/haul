@@ -2,6 +2,7 @@ package render
 
 import (
 	"math"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -93,6 +94,15 @@ func TestStreamTableCollapsesOtherCodecs(t *testing.T) {
 	withAudioInside := Streams(v[:1], nil, true, 0, -1, 0, false, false, plain)
 	if !strings.Contains(strings.Join(withAudioInside, "\n"), "Audio  inside the video file") {
 		t.Errorf("audio inside: %q", withAudioInside)
+	}
+	measured := slices.Clone(v[:2])
+	measured[0].AudioBitrate = 128
+	text := strings.Join(Streams(measured, nil, true, 0, -1, 0, false, false, plain), "\n")
+	if !strings.Contains(text, "audio 128 kbps") || !strings.Contains(text, "audio -") {
+		t.Errorf("measured audio: %q", text)
+	}
+	if strings.Contains(strings.Join(Streams(v[:2], nil, true, 0, -1, 0, false, false, plain), "\n"), "audio ") {
+		t.Error("an audio column without measurements")
 	}
 }
 
