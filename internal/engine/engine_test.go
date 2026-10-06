@@ -1,9 +1,12 @@
 package engine
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,6 +22,7 @@ import (
 	"github.com/ac1982/haul/internal/fetch"
 	"github.com/ac1982/haul/internal/httpx"
 	"github.com/ac1982/haul/internal/media"
+	"github.com/ac1982/haul/internal/shell"
 	"github.com/ac1982/haul/internal/testkit"
 )
 
@@ -315,6 +319,56 @@ func TestAudioOnlyTakesTheBestAudioInTheSmallestVideo(t *testing.T) {
 	}
 	r = res.Entries[0]
 	eq(t, "unmeasured", r.Video[r.ChosenVideo].ID, "480p")
+}
+
+func TestAudioOnlyStreamIndexMatchesInfo(t *testing.T) {
+	m := testkit.MakeMedia(t)
+	lowPath := filepath.Join(t.TempDir(), "low.mp4")
+	res, err := shell.Run(context.Background(), testkit.FFmpeg, []string{"-v", "error", "-f", "lavfi", "-i",
+		"sine=frequency=440:duration=1", "-c:a", "aac", "-b:a", "24k", lowPath}, shell.Options{Capture: true})
+	if err != nil || res.Status != 0 {
+		t.Fatalf("making low bitrate audio: %v %s", err, res.Errors)
+	}
+	low, err := os.ReadFile(lowPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data := m.Combined
+		if strings.Contains(r.URL.Path, "480p") {
+			data = low
+		}
+		http.ServeContent(w, r, "av.mp4", time.Time{}, bytes.NewReader(data))
+	}))
+	defer srv.Close()
+	f := newFixture(t)
+	item := f.post(1, m)
+	f.site.items["post"] = item
+	f.stub.On("/vid/", func(r *http.Request) testkit.Response { return testkit.Ranged(m.Combined, r) })
+	reset := func() {
+		item.Entries[0].Formats = &media.Formats{}
+		for _, rank := range []int{1080, 720, 480} {
+			id := fmt.Sprintf("%dp", rank)
+			item.Entries[0].Formats.Video = append(item.Entries[0].Formats.Video, media.VideoFormat{
+				ID: id, Rank: rank, HasAudio: true, Source: media.Resource{URL: srv.URL + "/vid/" + id}})
+		}
+	}
+	reset()
+	listed, err := f.run("test:post", func(o *Options) { o.Content.Tracks = AudioOnly; o.List = true })
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := listed.Entries[0].Video[0].ID
+	eq(t, "listed index 0", want, "720p")
+	// A separate invocation resolves fresh formats, with no cached measurements.
+	reset()
+	downloaded, err := f.run("test:post", func(o *Options) { o.Content.Tracks = AudioOnly; o.VideoIndex = 0 })
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := downloaded.Entries[0]
+	eq(t, "explicit index 0", r.Video[r.ChosenVideo].ID, want)
+	eq(t, "status", r.Status, Downloaded)
 }
 
 func TestSeveralEntriesGoInAFolder(t *testing.T) {

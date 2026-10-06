@@ -250,7 +250,8 @@ const probeTimeout = 20 * time.Second
 // 720p), and the best audio in the smallest file is the one to take. ffmpeg reads only the head of each stream.
 // A stream it cannot read stays unknown; the choice then falls back to the order without it.
 func (e *Engine) measureAudio(ctx context.Context, f *media.Formats) {
-	if !audioFromVideo(e.Options, f) || e.Options.VideoIndex >= 0 || e.FFmpeg == "" {
+	// Explicit indexes refer to the measured order shown by info, so they need the same probes.
+	if !audioFromVideo(e.Options, f) || e.FFmpeg == "" {
 		return
 	}
 	var todo []*media.VideoFormat
